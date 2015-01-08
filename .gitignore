@@ -28,3 +28,5 @@
 *.x86_64
 *.hex
 profsh
+*.swp
+.nfs*
