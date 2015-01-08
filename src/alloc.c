@@ -16,8 +16,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "alloc.h"
-
+#ifdef __APPLE__
+#include <err.h>
+#define error(x,y,z) errc(x,y,z)
+#else
 #include <error.h>
+#endif
 #include <errno.h>
 #include <stdlib.h>
 

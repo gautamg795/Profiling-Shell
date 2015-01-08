@@ -16,7 +16,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <errno.h>
+#ifdef __APPLE__
+#include <err.h>
+#define error(args...) errc(args)
+#else
 #include <error.h>
+#endif
 #include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>

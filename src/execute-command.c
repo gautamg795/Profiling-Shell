@@ -18,7 +18,12 @@
 #include "command.h"
 #include "command-internals.h"
 
+#ifdef __APPLE__
+#include <err.h>
+#define error(x,y,z) errc(x,y,z)
+#else
 #include <error.h>
+#endif
 
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
