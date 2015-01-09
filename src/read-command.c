@@ -113,7 +113,6 @@ make_command_stream (int (*get_next_byte) (void *),
     }
       // TODO: Add the command to the stream after we get it
     stream->commands[stream->command_idx] = cmd;
-    stream->command_idx++;
     stream->num_commands++;
   }
   return stream;
@@ -206,6 +205,16 @@ command_t
 read_command_stream (command_stream_t s)
 {
   /* FIXME: Replace this with your implementation too.  */
-  error (1, 0, "command reading not yet implemented");
-  return 0;
+  //error (1, 0, "command reading not yet implemented");
+  
+  // No more commands
+  if (s->command_idx == s->num_commands) {
+    return NULL;
+  }
+  
+  command_t comm = s->commands[s->command_idx];
+  s->command_idx++;
+  
+  // Do we need to free anything?
+  return comm;
 }
