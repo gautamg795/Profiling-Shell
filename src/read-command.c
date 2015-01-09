@@ -72,6 +72,7 @@ char *get_one_line(int (*getbyte) (void *), void *arg)
       continue;
     str[curLen++] = byte;
   }
+  line_num++; // For syntax error reporting
   return str;
 }
 
@@ -140,7 +141,6 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
       if (!line)
         return NULL;
       if (strlen(line) > 0)
-        line_num++; // For syntax error reporting
         break;
     }
   }
