@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdbool.h>
+
 typedef struct command *command_t;
 typedef struct command_stream *command_stream_t;
 typedef enum
@@ -33,6 +34,7 @@ typedef enum
 
 
 char *get_one_line(int (*getbyte) (void *), void *arg);
+
 /* Create a command stream from GETBYTE and ARG.  A reader of
    the command stream will invoke GETBYTE (ARG) to get the next byte.
    GETBYTE will return the next input byte, or a negative number
