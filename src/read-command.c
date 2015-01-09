@@ -144,7 +144,7 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
     }
   }
   cmd = (command_t)checked_malloc(sizeof(struct command));
-  
+  size_t original_linelength = strlen(line); // because strtok mangles the line
   
   if (state == UNPARSED)
   {
@@ -154,7 +154,7 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
     if (strcmp(word, "if") == 0)
     {
       cmd->type = IF_COMMAND;
-      if (strlen(line) > 2 && words_left_on_line(line+3)) // 3 because if\0
+      if (original_linelength > 2 && words_left_on_line(line+3)) // 3 because if\0
       {
         char *newline = (char*)checked_malloc((1 + strlen(line + 3)) * sizeof(char));
         strcpy(newline, line+3);
