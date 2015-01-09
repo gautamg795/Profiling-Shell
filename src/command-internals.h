@@ -26,6 +26,8 @@ enum command_type
     WHILE_COMMAND,	 // while A do B done
   };
 
+
+
 // Data associated with a command.
 struct command
 {

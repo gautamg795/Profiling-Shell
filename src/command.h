@@ -17,7 +17,22 @@
 
 typedef struct command *command_t;
 typedef struct command_stream *command_stream_t;
+typedef enum
+{
+    IF,
+    THEN,
+    ELSE,
+    FI,
+    WHILE,
+    DO,
+    DONE,
+    UNTIL,
+    SIMPLE,
+    UNPARSED,
+} command_tokenization_state;
 
+
+char *get_one_line(int (*getbyte) (void *), void *arg);
 /* Create a command stream from GETBYTE and ARG.  A reader of
    the command stream will invoke GETBYTE (ARG) to get the next byte.
    GETBYTE will return the next input byte, or a negative number
@@ -31,7 +46,13 @@ void free_command_stream(command_stream_t stream);
 /* Provides further encapsulation around the process of building a command from
    the input stream. Returns a command to make_command_stream, or NULL when there
    are no further commands to be read. */
-command_t build_next_command(int (*getbyte) (void *), void *arg);
+command_t build_command(int (*getbyte) (void *), void *arg,
+                        command_tokenization_state state, char *line);
+
+command_t build_if_command();
+command_t build_while_command();
+command_t build_until_command();
+
 
 /* Prepare for profiling to the file FILENAME.  If FILENAME is null or
    cannot be written to, set errno and return -1.  Otherwise, return a

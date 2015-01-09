@@ -27,6 +27,9 @@
 #include "alloc.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+#include <ctype.h>
 
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
@@ -40,6 +43,36 @@ struct command_stream
   int num_commands;
   int maxsize;
 };
+
+static char *line = NULL;
+
+char *get_one_line(int (*getbyte) (void *), void *arg)
+{
+  char* str = checked_malloc(32 * sizeof(char));
+  int curLen = 0;
+  int maxLen = 32;
+  int byte;
+  while(true)
+  {
+    if (curLen == maxLen)
+    {
+      str = (char*)checked_realloc(str, maxLen * 2 * sizeof(char));
+      maxLen *= 2;
+    }
+    byte = getbyte(arg);
+    if (byte == EOF || byte == '\n')
+    {
+      if (byte == EOF && curLen == 0)
+        return NULL;
+      str[curLen] = 0;
+      break;
+    }
+    if (curLen == 0 && isspace(byte)) // discard leading whitespace
+      continue;
+    str[curLen++] = byte;
+  }
+  return str;
+}
 
 command_stream_t
 make_command_stream (int (*get_next_byte) (void *),
@@ -57,11 +90,17 @@ make_command_stream (int (*get_next_byte) (void *),
   {
     if (stream->num_commands == stream->maxsize)
     {
-      stream->commands = (command_t*) checked_realloc(stream->commands, (stream->maxsize + 128) * sizeof(command_t));
+      stream->commands = (command_t*) checked_realloc(stream->commands,
+                                                      (stream->maxsize + 128) * sizeof(command_t));
       stream->maxsize += 128;
     }
+    command_t cmd = build_command(get_next_byte, get_next_byte_argument, UNPARSED,
+                                  NULL);
+    if (cmd == NULL) /* Done reading commands */
+    {
+      
+    }
   }
-//  error (1, 0, "command reading not yet implemented");
   return stream;
 }
 
@@ -71,6 +110,62 @@ free_command_stream(command_stream_t stream)
   if (stream->commands)
     free(stream->commands);
   free(stream);
+}
+
+command_t
+build_command(int (*getbyte) (void *), void *arg, command_tokenization_state state,
+              char *line)
+{
+  command_t cmd = NULL;
+  char *word;
+  if (!line)
+  {
+    while(true)
+    {
+      line = get_one_line(getbyte, arg);
+      if (!line)
+        return NULL;
+      if (strlen(line) > 0)
+        break;
+    }
+  }
+  cmd = (command_t)checked_malloc(sizeof(struct command));
+  if (state == UNPARSED)
+  {
+    word = strtok(line, " ");
+    if (!word) // TODO: This shouldn't happen.
+      error(1, 0, "attempted parsing empty line in build_command()");
+    if (strcmp(word, "if") == 0)
+    {
+      cmd->type = IF_COMMAND;
+      word = strtok(NULL, " ");
+      if (!word)
+      {
+        cmd->u.command[0] = build_command(getbyte, arg, UNPARSED, NULL);
+      }
+      else
+      {
+        //char *newline = (char*)checked_malloc(strlen()
+      }
+    }
+    else if (strcmp(word, "while") == 0)
+    {
+      cmd->type = WHILE_COMMAND;
+    }
+    else if (strcmp(word, "until") == 0)
+    {
+      cmd->type = UNTIL_COMMAND;
+    }
+    else
+    {
+      cmd->type = SIMPLE_COMMAND;
+      cmd->u.word = &line;
+      return cmd;
+    }
+  }
+
+  
+  return cmd;
 }
 
 command_t
