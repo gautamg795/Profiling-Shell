@@ -50,7 +50,8 @@ void free_command_stream(command_stream_t stream);
    the input stream. Returns a command to make_command_stream, or NULL when there
    are no further commands to be read. */
 command_t build_command(int (*getbyte) (void *), void *arg,
-                        command_tokenization_state state, char *line);
+                        command_tokenization_state state, char *line,
+                        char *remain);
 
 bool words_left_on_line(char *line);
 

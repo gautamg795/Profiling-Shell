@@ -155,7 +155,7 @@ make_command_stream (int (*get_next_byte) (void *),
       stream->maxsize += 128;
     }
     command_t cmd = build_command(get_next_byte, get_next_byte_argument, UNPARSED,
-                                  NULL);
+                                  NULL, NULL);
     if (cmd == NULL) /* Done reading commands */
     {
       break; //??
@@ -177,7 +177,7 @@ free_command_stream(command_stream_t stream)
 
 command_t
 build_command(int (*getbyte) (void *), void *arg, command_tokenization_state state,
-              char *line)
+              char *line, char *remain)
 {
   command_t cmd = NULL;
   char *word = NULL;
@@ -209,12 +209,12 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
         char *newline = (char *)checked_malloc((1 + strlen(line + 3)) * sizeof(char));
         strcpy(newline, line+3);
         free(line);
-        cmd->u.command[0] = build_command(getbyte, arg, IF, newline);
+        cmd->u.command[0] = build_command(getbyte, arg, IF, newline, NULL);
       }
       else
       {
         // No more words on the line, get a new line
-        cmd->u.command[0] = build_command(getbyte, arg, IF, NULL);
+        cmd->u.command[0] = build_command(getbyte, arg, IF, NULL, NULL);
       }
       
     }
@@ -248,16 +248,13 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
       newline = trim(newline);
       if (words_left_on_line(then+4))
       {
-        // we need to check if there are chars left on the line
+        // !!!: resume here
       }
     }
     else // the line does not contain a then
     {
       //So the entire line is the condition of the if
-      char *newline = (char *)checked_malloc((strlen(line) + 1) * sizeof(char));
-      strcpy(newline, line);
-      line[0] = 0; // I'm thinking we'll use this to signal the caller
-      return build_command(getbyte, arg, UNPARSED, newline);
+      return build_command(getbyte, arg, UNPARSED, line, NULL);
     }
   }
   
