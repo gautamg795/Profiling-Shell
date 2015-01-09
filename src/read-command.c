@@ -112,8 +112,7 @@ make_command_stream (int (*get_next_byte) (void *),
       break; //??
     }
       // TODO: Add the command to the stream after we get it
-    stream->commands[stream->command_idx] = cmd;
-    stream->num_commands++;
+    stream->commands[stream->num_commands++] = cmd;
   }
   return stream;
 }
