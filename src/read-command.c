@@ -156,7 +156,7 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
       cmd->type = IF_COMMAND;
       if (strlen(line) > 2 && words_left_on_line(line+3)) // 3 because if\0
       {
-        char *newline = (char*)checked_malloc(strlen(line + 3) * sizeof(char));
+        char *newline = (char*)checked_malloc((1 + strlen(line + 3)) * sizeof(char));
         strcpy(newline, line+3);
         free(line);
         cmd->u.command[0] = build_command(getbyte, arg, THEN, newline);
