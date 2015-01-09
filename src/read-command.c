@@ -31,6 +31,7 @@
 #include <string.h>
 #include <ctype.h>
 
+
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
 
@@ -46,6 +47,54 @@ struct command_stream
 
 
 static int line_num = 0;
+
+char *trim(char *str)
+{
+  size_t len = 0;
+  char *front = str;
+  char *back = NULL;
+  
+  if(str == NULL)
+  {
+    return NULL;
+  }
+  if(str[0] == '\0')
+  {
+    return str;
+  }
+  
+  len = strlen(str);
+  back = str + len;
+  
+  while(isspace(*front))
+  {
+    ++front;
+  }
+  if(back != front)
+  {
+    while(isspace(*(--back)) && back != front)
+    {
+      continue;
+    }
+  }
+  
+  if(str + len - 1 != back)
+    *(back + 1) = '\0';
+  else if(front != str &&  back == front)
+    *str = '\0';
+  back = str;
+  if(front != str)
+  {
+    while(*front)
+    {
+      *back++ = *front++;
+    }
+    *back = '\0';
+  }
+  
+  
+  return str;
+}
 
 char *get_one_line(int (*getbyte) (void *), void *arg)
 {
@@ -143,11 +192,12 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
         break;
     }
   }
-  cmd = (command_t)checked_malloc(sizeof(struct command));
+  line = trim(line);
   size_t original_linelength = strlen(line); // because strtok mangles the line
   
   if (state == UNPARSED)
   {
+    cmd = (command_t)checked_malloc(sizeof(struct command));
     word = strtok(line, " ");
     if (!word) // TODO: This shouldn't happen.
       error(1, 0, "attempted parsing empty line in build_command()");
@@ -156,15 +206,15 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
       cmd->type = IF_COMMAND;
       if (original_linelength > 2 && words_left_on_line(line+3)) // 3 because if\0
       {
-        char *newline = (char*)checked_malloc((1 + strlen(line + 3)) * sizeof(char));
+        char *newline = (char *)checked_malloc((1 + strlen(line + 3)) * sizeof(char));
         strcpy(newline, line+3);
         free(line);
-        cmd->u.command[0] = build_command(getbyte, arg, THEN, newline);
+        cmd->u.command[0] = build_command(getbyte, arg, IF, newline);
       }
       else
       {
         // No more words on the line, get a new line
-        cmd->u.command[0] = build_command(getbyte, arg, THEN, NULL);
+        cmd->u.command[0] = build_command(getbyte, arg, IF, NULL);
       }
       
     }
@@ -184,9 +234,39 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
     }
   }
   
-  else if (state == THEN) {
+  else if (state == IF) // we are looking for the if condition
+  {
+    char *then = strstr(line, "then");
+    // The if statement below tries to take care of the fact that the line could
+    // contain another if statement, in which case our check for 'then' would
+    // get messed up. It tries to ensure that any 'then' it finds is before any
+    // potential 'if' in the line
+    if (then && (!strstr(line, "if") || then < strstr(line, "if"))) // the line contains a then
+    {
+      char *newline = (char *)checked_malloc((then - line - 1) * sizeof(char));
+      memcpy(newline, line, then - line - 2);
+      newline = trim(newline);
+      // we need to check if there are chars left on the line
+    }
+    else // the line does not contain a then
+    {
+      //So the entire line is the condition of the if
+      char *newline = (char *)checked_malloc((strlen(line) + 1) * sizeof(char));
+      strcpy(newline, line);
+      line[0] = 0; // I'm thinking we'll use this to signal the caller
+      return build_command(getbyte, arg, UNPARSED, newline);
+    }
+  }
+  
+  else if (state == THEN) // we are looking for what to do if condition is met
+  {
     // ..what about if you have if if 1 && if 2 then echo hello fi.. bad syntax
-    char* then = strstr(line, "then"); // finds the 'then'
+    char *then = strstr(line, "then"); // finds the 'then'
+    if (!then)
+    {
+      
+    }
+    char *newline = (char *)checked_malloc((then - word) * sizeof(char));
   }
   return cmd;
 }

@@ -32,6 +32,7 @@ typedef enum
     UNPARSED,
 } command_tokenization_state;
 
+char *trim(char *string);
 
 char *get_one_line(int (*getbyte) (void *), void *arg);
 
