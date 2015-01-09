@@ -45,7 +45,6 @@ struct command_stream
 };
 
 
-static char *line = NULL;
 static int line_num = 0;
 
 char *get_one_line(int (*getbyte) (void *), void *arg)
