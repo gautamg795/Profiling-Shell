@@ -164,7 +164,7 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
       else
       {
         // No more words on the line, get a new line
-        cmd->u.command[0] = build_command(getbyte, arg, THEN, NULL); // DF Changed UNPARSED to THEN
+        cmd->u.command[0] = build_command(getbyte, arg, THEN, NULL);
       }
       
     }
