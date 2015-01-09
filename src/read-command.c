@@ -154,7 +154,7 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
     if (strcmp(word, "if") == 0)
     {
       cmd->type = IF_COMMAND;
-      if (words_left_on_line(line+3)) // 3 because if\0
+      if (strlen(line) > 2 && words_left_on_line(line+3)) // 3 because if\0
       {
         // No more words on the line, get a new line
         cmd->u.command[0] = build_command(getbyte, arg, THEN, NULL); // DF Changed UNPARSED to THEN
