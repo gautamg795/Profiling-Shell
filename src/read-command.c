@@ -246,7 +246,10 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
       char *newline = (char *)checked_malloc((then - line - 1) * sizeof(char));
       memcpy(newline, line, then - line - 2);
       newline = trim(newline);
-      // we need to check if there are chars left on the line
+      if (words_left_on_line(then+4))
+      {
+        // we need to check if there are chars left on the line
+      }
     }
     else // the line does not contain a then
     {
