@@ -44,7 +44,9 @@ struct command_stream
   int maxsize;
 };
 
+
 static char *line = NULL;
+static int line_num = 0;
 
 char *get_one_line(int (*getbyte) (void *), void *arg)
 {
@@ -107,9 +109,12 @@ make_command_stream (int (*get_next_byte) (void *),
                                   NULL);
     if (cmd == NULL) /* Done reading commands */
     {
-      
+      break; //??
     }
       // TODO: Add the command to the stream after we get it
+    stream->commands[stream->command_idx] = cmd;
+    stream->command_idx++;
+    stream->num_commands++;
   }
   return stream;
 }
@@ -137,6 +142,7 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
       if (!line)
         return NULL;
       if (strlen(line) > 0)
+        line_num++; // For syntax error reporting
         break;
     }
   }
