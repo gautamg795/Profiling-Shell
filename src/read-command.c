@@ -146,18 +146,6 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
   }
   cmd = (command_t)checked_malloc(sizeof(struct command));
   
-  if (state == THEN) {
-    // ..what about if you have if if 1 && if 2 then echo hello fi.. bad syntax
-    int ct = 0;
-    while (ct <= strlen(line) - 4) {
-      // Find the then
-      if (line[ct] == 't' && line[ct+1] == 'h' && line[ct+2] == 'e' && line[ct+3] == 'n') {
-        // Call build_command on everything before the then (the condition)
-        // And call build_command on everything after the then
-      }
-        
-    }
-  }
   
   if (state == UNPARSED)
   {
@@ -197,6 +185,18 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
     }
   }
   
+  else if (state == THEN) {
+    // ..what about if you have if if 1 && if 2 then echo hello fi.. bad syntax
+    int ct = 0;
+    while (ct <= strlen(line) - 4) {
+      // Find the then
+      if (line[ct] == 't' && line[ct+1] == 'h' && line[ct+2] == 'e' && line[ct+3] == 'n') {
+        // Call build_command on everything before the then (the condition)
+        // And call build_command on everything after the then
+      }
+      
+    }
+  }
   return cmd;
 }
 
