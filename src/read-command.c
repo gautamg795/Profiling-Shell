@@ -64,8 +64,8 @@ char *get_one_line(int (*getbyte) (void *), void *arg)
     if (byte == EOF || byte == '\n')
     {
       if (byte == EOF && curLen == 0)
-        return NULL;
-      str[curLen] = 0;
+        return NULL; // Only return NULL if we hit EOF without having read anything
+      str[curLen] = 0; // Put a null byte in so strlen works correctly
       break;
     }
     if (curLen == 0 && isspace(byte)) // discard leading whitespace
