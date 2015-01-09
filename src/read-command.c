@@ -27,6 +27,7 @@
 #include "alloc.h"
 #include <stdlib.h>
 #include <stdio.h>
+
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
 
@@ -52,10 +53,13 @@ make_command_stream (int (*get_next_byte) (void *),
   stream->command_idx = stream->num_commands = stream->maxsize = 0;
   stream->commands = (command_t*) checked_malloc(128 * sizeof(command_t));
   stream->maxsize = 128;
-  int byte;
-  while ((byte = get_next_byte(get_next_byte_argument)) != EOF)
+  while(1)
   {
-    // load the commands
+    if (stream->num_commands == stream->maxsize)
+    {
+      stream->commands = (command_t*) checked_realloc(stream->commands, (stream->maxsize + 128) * sizeof(command_t));
+      stream->maxsize += 128;
+    }
   }
 //  error (1, 0, "command reading not yet implemented");
   return stream;

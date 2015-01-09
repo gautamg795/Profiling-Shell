@@ -28,6 +28,11 @@ command_stream_t make_command_stream (int (*getbyte) (void *), void *arg);
    array of commands. */
 void free_command_stream(command_stream_t stream);
 
+/* Provides further encapsulation around the process of building a command from
+   the input stream. Returns a command to make_command_stream, or NULL when there
+   are no further commands to be read. */
+command_t build_next_command(int (*getbyte) (void *), void *arg);
+
 /* Prepare for profiling to the file FILENAME.  If FILENAME is null or
    cannot be written to, set errno and return -1.  Otherwise, return a
    nonnegative integer flag useful as an argument to
