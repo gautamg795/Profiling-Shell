@@ -74,6 +74,15 @@ char *get_one_line(int (*getbyte) (void *), void *arg)
   return str;
 }
 
+bool
+words_left_on_line(char *line)
+{
+  for (int i = 0; i < strlen(line); i++)
+    if (!isspace(line[i]))
+      return true;
+  return false;
+}
+
 command_stream_t
 make_command_stream (int (*get_next_byte) (void *),
                      void *get_next_byte_argument)
@@ -100,6 +109,7 @@ make_command_stream (int (*get_next_byte) (void *),
     {
       
     }
+      // TODO: Add the command to the stream after we get it
   }
   return stream;
 }
@@ -110,6 +120,7 @@ free_command_stream(command_stream_t stream)
   if (stream->commands)
     free(stream->commands);
   free(stream);
+    // TODO: This isn't good enough.
 }
 
 command_t
@@ -117,7 +128,7 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
               char *line)
 {
   command_t cmd = NULL;
-  char *word;
+  char *word = NULL;
   if (!line)
   {
     while(true)
@@ -138,15 +149,19 @@ build_command(int (*getbyte) (void *), void *arg, command_tokenization_state sta
     if (strcmp(word, "if") == 0)
     {
       cmd->type = IF_COMMAND;
-      word = strtok(NULL, " ");
-      if (!word)
+      if (words_left_on_line(line+3)) // 3 because if\0
       {
         cmd->u.command[0] = build_command(getbyte, arg, UNPARSED, NULL);
+        // No more words on the line, get a new line
       }
-      else
+      else // word is a pointer to the next word
       {
-        //char *newline = (char*)checked_malloc(strlen()
+        char *newline = (char*)checked_malloc(strlen(line + 3) * sizeof(char));
+        strcpy(newline, line+3);
+        free(line);
+        cmd->u.command[0] = build_command(getbyte, arg, THEN, newline);
       }
+      
     }
     else if (strcmp(word, "while") == 0)
     {

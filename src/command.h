@@ -14,7 +14,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+#include <stdbool.h>
 typedef struct command *command_t;
 typedef struct command_stream *command_stream_t;
 typedef enum
@@ -49,9 +49,7 @@ void free_command_stream(command_stream_t stream);
 command_t build_command(int (*getbyte) (void *), void *arg,
                         command_tokenization_state state, char *line);
 
-command_t build_if_command();
-command_t build_while_command();
-command_t build_until_command();
+bool words_left_on_line(char *line);
 
 
 /* Prepare for profiling to the file FILENAME.  If FILENAME is null or
