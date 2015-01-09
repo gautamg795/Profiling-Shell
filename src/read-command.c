@@ -124,7 +124,7 @@ free_command_stream(command_stream_t stream)
   if (stream->commands)
     free(stream->commands);
   free(stream);
-    // TODO: This isn't good enough.
+    // !!!: This isn't good enough.
 }
 
 command_t
