@@ -20,7 +20,7 @@
 
 #ifdef __APPLE__
 #include <err.h>
-#define error(x,y,z) errc(x,y,z)
+#define error(args...) errc(args)
 #else
 #include <error.h>
 #endif
@@ -40,15 +40,15 @@
 struct command_stream
 {
   command_t *commands;
-  int command_idx;
-  int num_commands;
-  int maxsize;
+  size_t command_idx;
+  size_t num_commands;
+  size_t maxsize;
 };
 
+static int linenum = 1;
 
-static int line_num = 0;
-
-char *read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
+char *
+read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
 {
   size_t buf_size = 1024;
   size_t cur_size = 0;
@@ -69,17 +69,87 @@ char *read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
   return buf;
 }
 
+
 command_stream_t
 make_command_stream (int (*get_next_byte) (void *),
                      void *get_next_byte_argument)
 {
-  /* FIXME: Replace this with your implementation.  You may need to
-     add auxiliary functions and otherwise modify the source code.
-     You can also use external functions defined in the GNU C Library.  */
-  command_stream_t stream;
+  command_stream_t stream = (command_stream_t)checked_malloc(sizeof(struct command_stream));
+  stream->command_idx = stream->num_commands = 0;
+  stream->commands = (command_t*)checked_malloc(128 * sizeof(command_t));
+  stream->maxsize = 128;
   size_t script_length;
   char *script = read_script(get_next_byte, get_next_byte_argument, &script_length);
+  char *start = script;
+  char *end = start + script_length;
+  while (start < end)
+  {
+    if (stream->num_commands == stream->maxsize)
+    {
+      stream->commands = (command_t *)checked_grow_alloc(stream->commands,
+                                                         &stream->maxsize);
+    }
+    command_t cmd = build_command(&start, end);
+    if (!cmd)
+      error(1, 0, "sumthing wong"); // FIXME: ya
+    stream->commands[stream->num_commands++] = cmd;
+  }
   return stream;
+}
+
+command_t
+build_command(char **startpos, char *endpos)
+{
+  char *front = *startpos;
+  while (isspace(*front))
+  {
+    if (*front == '\n')
+      linenum++;
+    front++;
+  }
+  if ((endpos - front) >= 2 && front[0] == 'i' && front[1] == 'f' &&
+      front[2] == ' ')
+  {
+    return build_if_command(startpos, endpos);
+  }
+  else if ((endpos - front) >= 5 && front[0] == 'w' && front[1] == 'h'
+           && front[2] == 'i' && front[3] == 'l' && front[4] == 'e'
+           && front[5] == ' ')
+  {
+    return build_while_command(startpos, endpos);
+  }
+  else if ((endpos - front) >= 5 && front[0] == 'u' && front[1] == 'n'
+           && front[2] == 't' && front[3] == 'i' && front[4] == 'l'
+           && front[5] == ' ')
+  {
+    return build_until_command(startpos, endpos);
+  }
+  char *next_newline = strchr(front, '\n');
+  if (!next_newline)
+    error(1, 0, "didn't find a newline"); // FIXME: deal with end of file
+  // Search for a pipe
+  char *pipe = memchr(front, '|', next_newline - front);
+  char *left_redir = memchr(front, '<', next_newline - front);
+  char *right_redir = memchr(front, '>', next_newline - front);
+  
+  // TODO: Deal with this shit
+  
+  if (!pipe && !left_redir && !right_redir)
+  {
+    for (char* c = front; c != next_newline; c++)
+      if (!isalnum(*c) && !strchr("!%+,-./:@^_", *c))
+        error(1, 0, "Invalid character read on line %d", linenum);
+    command_t cmd = (command_t)checked_malloc(sizeof(struct command));
+    char *cmdstring = (char*)checked_malloc((next_newline - front + 1) * sizeof(char));
+    strncpy(cmdstring, front, next_newline - front);
+    cmd->type = SIMPLE_COMMAND;
+    cmd->u.word = &cmdstring;
+    cmd->status = -1;
+    *startpos = next_newline;
+    linenum++;
+    return cmd;
+  }
+  err(1, 0, "we should not have made it here");
 }
 
 
