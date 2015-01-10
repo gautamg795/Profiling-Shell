@@ -152,6 +152,7 @@ build_command(char **startpos, char *endpos)
     cmd->type = SIMPLE_COMMAND;
     cmd->u.word = cmdstr;
     cmd->status = -1;
+    cmd->input = cmd->output = NULL;
     *startpos = next_newline;
     return cmd;
   }
