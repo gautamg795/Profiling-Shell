@@ -149,7 +149,8 @@ build_command(char **startpos, char *endpos)
       if (!isalnum(*c) && !strchr("!%+,-./:@^_ ", *c))
         error(1, 0, "Invalid character read on line %d", linenum);
     command_t cmd = (command_t)checked_malloc(sizeof(struct command));
-    char **cmdstr = (char**)checked_malloc(sizeof(char*));
+    char **cmdstr = (char**)checked_malloc(2 * sizeof(char*));
+    cmdstr[1] = 0;
     *cmdstr = (char*)checked_malloc((next_newline - front + 1) * sizeof(char));
     strncpy(*cmdstr, front, next_newline - front);
     (*cmdstr)[next_newline-front] = 0;
