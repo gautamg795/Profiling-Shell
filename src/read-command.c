@@ -156,7 +156,7 @@ build_command(char **startpos, char *endpos)
     *startpos = next_newline;
     return cmd;
   }
-  err(1, 0, "we should not have made it here");
+  error(1, 0, "we should not have made it here");
 }
 
 command_t
