@@ -53,7 +53,7 @@ profsh: $(PROFSH_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $(PROFSH_OBJECTS)
 
 debug: $(PROFSH_OBJECTS)
-	$(CC) $(CFLAGS) -fsanitize=address -Wl,--rpath=/usr/local/cs/lib64 -o profsh $(PROFSH_OBJECTS)
+	$(CC) $(CFLAGS) -fsanitize=undefined -fsanitize=address -Wl,--rpath=/usr/local/cs/lib64 -o profsh $(PROFSH_OBJECTS)
 
 alloc.o: alloc.h
 execute-command.o main.o print-command.o read-command.o: command.h
