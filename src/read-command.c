@@ -152,6 +152,7 @@ build_command(char **startpos, char *endpos)
     char **cmdstr = (char**)checked_malloc(sizeof(char*));
     *cmdstr = (char*)checked_malloc((next_newline - front + 1) * sizeof(char));
     strncpy(*cmdstr, front, next_newline - front);
+    (*cmdstr)[next_newline-front] = 0;
     cmd->type = SIMPLE_COMMAND;
     cmd->u.word = cmdstr;
     cmd->status = -1;
