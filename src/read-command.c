@@ -84,10 +84,11 @@ make_command_stream (int (*get_next_byte) (void *),
   char *end = start + script_length;
   while (start < end)
   {
-    if (stream->num_commands == stream->maxsize)
+    if (stream->num_commands == stream->maxsize - 1)
     {
-      stream->commands = (command_t *)checked_grow_alloc(stream->commands,
-                                                         &stream->maxsize);
+      stream->commands = (command_t *)checked_realloc(stream->commands,
+                                                         stream->maxsize * 2 * sizeof(command_t));
+      stream->maxsize *= 2;
     }
     command_t cmd = build_command(&start, end);
     if (!cmd)
