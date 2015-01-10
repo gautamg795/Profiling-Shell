@@ -25,7 +25,7 @@ else
     CC = gcc
 endif
 # WERROR_CFLAGS = -Werror
-CFLAGS = -g -Wall -Wextra $(WERROR_CFLAGS)
+CFLAGS = -g -Wall -Wextra -std=gnu11 $(WERROR_CFLAGS)
 LAB = 1
 DISTDIR = lab1-$(USER)
 CHECK_DIST = ./check-dist
@@ -51,6 +51,9 @@ DIST_SOURCES = \
 
 profsh: $(PROFSH_OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $(PROFSH_OBJECTS)
+
+debug: $(PROFSH_OBJECTS)
+	$(CC) $(CFLAGS) -fsanitize=address -Wl,--rpath=/usr/local/cs/lib64 -o profsh $(PROFSH_OBJECTS)
 
 alloc.o: alloc.h
 execute-command.o main.o print-command.o read-command.o: command.h

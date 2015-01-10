@@ -20,7 +20,7 @@
 
 #ifdef __APPLE__
 #include <err.h>
-#define error(x,y,z) errc(x,y,z)
+#define error(args...) errc(args)
 #else
 #include <error.h>
 #endif
@@ -40,235 +40,142 @@
 struct command_stream
 {
   command_t *commands;
-  int command_idx;
-  int num_commands;
-  int maxsize;
+  size_t command_idx;
+  size_t num_commands;
+  size_t maxsize;
 };
 
+static int linenum = 1;
 
-static int line_num = 0;
-
-char *trim(char *str)
+char *
+read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
 {
-  size_t len = 0;
-  char *front = str;
-  char *back = NULL;
-  
-  if(str == NULL)
+  size_t buf_size = 1024;
+  size_t cur_size = 0;
+  char *buf = (char *)checked_malloc(buf_size * sizeof(char));
+  while (true)
   {
-    return NULL;
-  }
-  if(str[0] == '\0')
-  {
-    return str;
-  }
-  
-  len = strlen(str);
-  back = str + len;
-  
-  while(isspace(*front))
-  {
-    ++front;
-  }
-  if(back != front)
-  {
-    while(isspace(*(--back)) && back != front)
+    if (cur_size == buf_size)
     {
-      continue;
+      buf = checked_grow_alloc(buf, &buf_size);
     }
-  }
-  
-  if(str + len - 1 != back)
-    *(back + 1) = '\0';
-  else if(front != str &&  back == front)
-    *str = '\0';
-  back = str;
-  if(front != str)
-  {
-    while(*front)
-    {
-      *back++ = *front++;
-    }
-    *back = '\0';
-  }
-  
-  
-  return str;
-}
-
-char *get_one_line(int (*getbyte) (void *), void *arg)
-{
-  char* str = checked_malloc(32 * sizeof(char));
-  int curLen = 0;
-  int maxLen = 32;
-  int byte;
-  while(true)
-  {
-    if (curLen == maxLen)
-    {
-      str = (char*)checked_realloc(str, maxLen * 2 * sizeof(char));
-      maxLen *= 2;
-    }
-    byte = getbyte(arg);
-    if (byte == EOF || byte == '\n')
-    {
-      if (byte == EOF && curLen == 0)
-        return NULL; // Only return NULL if we hit EOF without having read anything
-      str[curLen] = 0; // Put a null byte in so strlen works correctly
+    int byte = get_next_byte(arg);
+    if (byte == EOF)
       break;
-    }
-    if (curLen == 0 && isspace(byte)) // discard leading whitespace
-      continue;
-    str[curLen++] = byte;
+    buf[cur_size++] = byte;
   }
-  line_num++; // For syntax error reporting
-  return str;
+  buf[cur_size] = '\0';
+  *len = cur_size;
+  return buf;
 }
 
-bool
-words_left_on_line(char *line)
-{
-  for (int i = 0; i < strlen(line); i++)
-    if (!isspace(line[i]))
-      return true;
-  return false;
-}
 
 command_stream_t
 make_command_stream (int (*get_next_byte) (void *),
                      void *get_next_byte_argument)
 {
-  /* FIXME: Replace this with your implementation.  You may need to
-     add auxiliary functions and otherwise modify the source code.
-     You can also use external functions defined in the GNU C Library.  */
-  command_stream_t stream = (command_stream_t) checked_malloc(sizeof(struct command_stream));
-  stream->commands = NULL;
-  stream->command_idx = stream->num_commands = stream->maxsize = 0;
-  stream->commands = (command_t*) checked_malloc(128 * sizeof(command_t));
+  command_stream_t stream = (command_stream_t)checked_malloc(sizeof(struct command_stream));
+  stream->command_idx = stream->num_commands = 0;
+  stream->commands = (command_t*)checked_malloc(128 * sizeof(command_t));
   stream->maxsize = 128;
-  while(1)
+  size_t script_length;
+  char *script = read_script(get_next_byte, get_next_byte_argument, &script_length);
+  char *start = script;
+  char *end = start + script_length;
+  while (start < end)
   {
-    if (stream->num_commands == stream->maxsize)
+    if (stream->num_commands == stream->maxsize - 1)
     {
-      stream->commands = (command_t*) checked_realloc(stream->commands,
-                                                      (stream->maxsize + 128) * sizeof(command_t));
-      stream->maxsize += 128;
+      stream->commands = (command_t *)checked_realloc(stream->commands,
+                                                         stream->maxsize * 2 * sizeof(command_t));
+      stream->maxsize *= 2;
     }
-    command_t cmd = build_command(get_next_byte, get_next_byte_argument, UNPARSED,
-                                  NULL, NULL);
-    if (cmd == NULL) /* Done reading commands */
-    {
-      break; //??
-    }
-      // TODO: Add the command to the stream after we get it
+    command_t cmd = build_command(&start, end);
+    if (!cmd)
+      continue;
     stream->commands[stream->num_commands++] = cmd;
   }
   return stream;
 }
 
-void
-free_command_stream(command_stream_t stream)
+command_t
+build_command(char **startpos, char *endpos)
 {
-  if (stream->commands)
-    free(stream->commands);
-  free(stream);
-    // !!!: This isn't good enough.
+  char *front = *startpos;
+  while (isspace(*front))
+  {
+    if (*front == '\n')
+      linenum++;
+    front++;
+  }
+  if (front == endpos)
+  {
+    // no text left
+    *startpos = front;
+    return NULL;
+  }
+  if ((endpos - front) >= 2 && front[0] == 'i' && front[1] == 'f' &&
+      front[2] == ' ')
+  {
+    return build_if_command(startpos, endpos);
+  }
+  else if ((endpos - front) >= 5 && front[0] == 'w' && front[1] == 'h'
+           && front[2] == 'i' && front[3] == 'l' && front[4] == 'e'
+           && front[5] == ' ')
+  {
+    return build_while_command(startpos, endpos);
+  }
+  else if ((endpos - front) >= 5 && front[0] == 'u' && front[1] == 'n'
+           && front[2] == 't' && front[3] == 'i' && front[4] == 'l'
+           && front[5] == ' ')
+  {
+    return build_until_command(startpos, endpos);
+  }
+  char *next_newline = strchr(front, '\n');
+  if (!next_newline)
+    error(1, 0, "didn't find a newline"); // FIXME: deal with end of file
+  // Search for a pipe
+  char *pipe = memchr(front, '|', next_newline - front);
+  char *left_redir = memchr(front, '<', next_newline - front);
+  char *right_redir = memchr(front, '>', next_newline - front);
+  
+  // TODO: Deal with this shit
+  
+  if (!pipe && !left_redir && !right_redir)
+  {
+    for (char* c = front; c != next_newline; c++)
+      if (!isalnum(*c) && !strchr("!%+,-./:@^_ ", *c))
+        error(1, 0, "Invalid character read on line %d", linenum);
+    command_t cmd = (command_t)checked_malloc(sizeof(struct command));
+    char **cmdstr = (char**)checked_malloc(sizeof(char*));
+    *cmdstr = (char*)checked_malloc((next_newline - front + 1) * sizeof(char));
+    strncpy(*cmdstr, front, next_newline - front);
+    cmd->type = SIMPLE_COMMAND;
+    cmd->u.word = cmdstr;
+    cmd->status = -1;
+    cmd->input = cmd->output = NULL;
+    *startpos = next_newline;
+    return cmd;
+  }
+  error(1, 0, "we should not have made it here");
 }
 
 command_t
-build_command(int (*getbyte) (void *), void *arg, command_tokenization_state state,
-              char *line, char *remain)
+build_if_command(char **startpos, char *endpos)
 {
-  command_t cmd = NULL;
-  char *word = NULL;
-  if (!line)
-  {
-    while(true)
-    {
-      line = get_one_line(getbyte, arg);
-      if (!line)
-        return NULL;
-      if (strlen(line) > 0)
-        break;
-    }
-  }
-  line = trim(line);
-  size_t original_linelength = strlen(line); // because strtok mangles the line
-  
-  if (state == UNPARSED)
-  {
-    cmd = (command_t)checked_malloc(sizeof(struct command));
-    word = strtok(line, " ");
-    if (!word) // TODO: This shouldn't happen.
-      error(1, 0, "attempted parsing empty line in build_command()");
-    if (strcmp(word, "if") == 0)
-    {
-      cmd->type = IF_COMMAND;
-      if (original_linelength > 2 && words_left_on_line(line+3)) // 3 because if\0
-      {
-        char *newline = (char *)checked_malloc((1 + strlen(line + 3)) * sizeof(char));
-        strcpy(newline, line+3);
-        free(line);
-        cmd->u.command[0] = build_command(getbyte, arg, IF, newline, NULL);
-      }
-      else
-      {
-        // No more words on the line, get a new line
-        cmd->u.command[0] = build_command(getbyte, arg, IF, NULL, NULL);
-      }
-      
-    }
-    else if (strcmp(word, "while") == 0)
-    {
-      cmd->type = WHILE_COMMAND;
-    }
-    else if (strcmp(word, "until") == 0)
-    {
-      cmd->type = UNTIL_COMMAND;
-    }
-    else
-    {
-      cmd->type = SIMPLE_COMMAND;
-      cmd->u.word = &line;
-      return cmd;
-    }
-  }
-  
-  else if (state == IF) // we are looking for the if condition
-  {
-    char *then = strstr(line, "then");
-    // The if statement below tries to take care of the fact that the line could
-    // contain another if statement, in which case our check for 'then' would
-    // get messed up. It tries to ensure that any 'then' it finds is before any
-    // potential 'if' in the line
-    if (then && (!strstr(line, "if") || then < strstr(line, "if"))) // the line contains a then
-    {
-      char *newline = (char *)checked_malloc((then - line - 1) * sizeof(char));
-      memcpy(newline, line, then - line - 2);
-      newline = trim(newline);
-      if (words_left_on_line(then+4))
-      {
-        // !!!: resume here
-      }
-    }
-    else // the line does not contain a then
-    {
-      //So the entire line is the condition of the if
-      return build_command(getbyte, arg, UNPARSED, line, NULL);
-    }
-  }
-  
-  else if (state == THEN) // we are looking for what to do if condition is met
-  {
-    // ..what about if you have if if 1 && if 2 then echo hello fi.. bad syntax
-    char *then = strstr(line, "then"); // finds the 'then'
-    if (!then)
-    {
-      
-    }
-    char *newline = (char *)checked_malloc((then - word) * sizeof(char));
-  }
-  return cmd;
+  return 0;
+}
+
+command_t
+build_while_command(char **startpos, char *endpos)
+{
+  return 0;
+}
+
+command_t
+build_until_command(char **startpos, char *endpos)
+{
+  return 0;
 }
 
 command_t
@@ -282,9 +189,5 @@ read_command_stream (command_stream_t s)
     return NULL;
   }
   
-  command_t comm = s->commands[s->command_idx];
-  s->command_idx++;
-  
-  // Do we need to free anything?
-  return comm;
+  return s->commands[s->command_idx++];
 }
