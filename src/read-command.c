@@ -47,6 +47,29 @@ struct command_stream
 
 static int linenum = 1;
 
+bool
+word_at_pos(char *startpos, char *endpos, char *word)
+{
+  size_t len = strlen(word);
+  if (endpos - startpos < len + 1) {
+    return false;
+  }
+  
+  for (int i = 0; i < len; i++)
+  {
+    if (startpos[i] != word[i])
+    {
+      return false;
+    }
+    if (i == len - 1)
+    {
+      // Must have a space or newline following the word to be valid
+      return isspace(startpos[len]);
+    }
+  }
+  return false;
+}
+
 char *
 read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
 {
@@ -98,6 +121,7 @@ make_command_stream (int (*get_next_byte) (void *),
       continue;
     stream->commands[stream->num_commands++] = cmd;
   }
+  free(script);
   return stream;
 }
 
@@ -118,20 +142,15 @@ build_command(char **startpos, char *endpos)
     // no text left
     return NULL;
   }
-  if ((endpos - front) >= 2 && front[0] == 'i' && front[1] == 'f' &&
-      isspace(front[2]))
+  if (word_at_pos(front, endpos, "if"))
   {
     return build_if_command(startpos, endpos);
   }
-  else if ((endpos - front) >= 5 && front[0] == 'w' && front[1] == 'h'
-           && front[2] == 'i' && front[3] == 'l' && front[4] == 'e'
-           && isspace(front[5]))
+  else if (word_at_pos(front, endpos, "while"))
   {
     return build_while_command(startpos, endpos);
   }
-  else if ((endpos - front) >= 5 && front[0] == 'u' && front[1] == 'n'
-           && front[2] == 't' && front[3] == 'i' && front[4] == 'l'
-           && isspace(front[5]))
+  else if (word_at_pos(front, endpos, "until"))
   {
     return build_until_command(startpos, endpos);
   }
@@ -182,18 +201,17 @@ build_if_command(char **startpos, char *endpos)
       *startpos = front;
       return NULL;
     }
-    if ((endpos - front) >= 2 && front[0] == 'i' && front[1] == 'f' &&
-        isspace(front[2]))
+    if (word_at_pos(front, endpos, "if"))
     {
       numInteriorIfs++;
     }
-    if ((endpos - front) >= 1 && front[0] == 'f' && front[1] == 'i')
+    else if (word_at_pos(front, endpos, "fi"))
     {
       numInteriorIfs--;
     }
-    else if ((endpos - front) >= 4 && front[0] == 't' && front[1] == 'h'
-             && front[2] == 'e' && front[3] == 'n' && front[4] == ' ')
+    else if (word_at_pos(front, endpos, "then"))
     {
+      
     }
     front++;
   }

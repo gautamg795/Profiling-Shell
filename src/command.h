@@ -24,7 +24,7 @@ command_t build_command(char **startpos, char *endpos);
 command_t build_if_command(char **startpos, char *endpos);
 command_t build_while_command(char **startpos, char *endpos);
 command_t build_until_command(char **startpos, char *endpos);
-bool word_at_pos(char *startpos, char *endpos);
+bool word_at_pos(char *startpos, char *endpos, char *word);
 
 /* Create a command stream from GETBYTE and ARG.  A reader of
    the command stream will invoke GETBYTE (ARG) to get the next byte.
