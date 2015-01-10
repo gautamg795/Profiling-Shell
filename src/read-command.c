@@ -48,6 +48,27 @@ struct command_stream
 
 static int line_num = 0;
 
+char *read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
+{
+  size_t buf_size = 1024;
+  size_t cur_size = 0;
+  char *buf = (char *)checked_malloc(buf_size * sizeof(char));
+  while (true)
+  {
+    if (cur_size == buf_size)
+    {
+      buf = checked_grow_alloc(buf, &buf_size);
+    }
+    int byte = get_next_byte(arg);
+    if (byte == EOF)
+      break;
+    buf[cur_size++] = byte;
+  }
+  buf[cur_size] = '\0';
+  *len = cur_size;
+  return buf;
+}
+
 command_stream_t
 make_command_stream (int (*get_next_byte) (void *),
                      void *get_next_byte_argument)
