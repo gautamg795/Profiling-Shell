@@ -77,6 +77,8 @@ make_command_stream (int (*get_next_byte) (void *),
      add auxiliary functions and otherwise modify the source code.
      You can also use external functions defined in the GNU C Library.  */
   command_stream_t stream;
+  size_t script_length;
+  char *script = read_script(get_next_byte, get_next_byte_argument, &script_length);
   return stream;
 }
 
