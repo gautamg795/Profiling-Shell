@@ -55,7 +55,7 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
   char *buf = (char *)checked_malloc(buf_size * sizeof(char));
   while (true)
   {
-    if (cur_size == buf_size)
+    if (cur_size == buf_size - 2)
     {
       buf = checked_grow_alloc(buf, &buf_size);
     }
@@ -64,6 +64,8 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
       break;
     buf[cur_size++] = byte;
   }
+  if (cur_size > 0 && buf[cur_size-1] != '\n')
+    buf[cur_size++] = '\n';
   buf[cur_size] = '\0';
   *len = cur_size;
   return buf;
