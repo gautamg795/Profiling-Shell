@@ -91,7 +91,7 @@ make_command_stream (int (*get_next_byte) (void *),
     }
     command_t cmd = build_command(&start, end);
     if (!cmd)
-      error(1, 0, "sumthing wong"); // FIXME: ya
+      continue;
     stream->commands[stream->num_commands++] = cmd;
   }
   return stream;
@@ -106,6 +106,12 @@ build_command(char **startpos, char *endpos)
     if (*front == '\n')
       linenum++;
     front++;
+  }
+  if (front == endpos)
+  {
+    // no text left
+    *startpos = front;
+    return NULL;
   }
   if ((endpos - front) >= 2 && front[0] == 'i' && front[1] == 'f' &&
       front[2] == ' ')
@@ -137,21 +143,38 @@ build_command(char **startpos, char *endpos)
   if (!pipe && !left_redir && !right_redir)
   {
     for (char* c = front; c != next_newline; c++)
-      if (!isalnum(*c) && !strchr("!%+,-./:@^_", *c))
+      if (!isalnum(*c) && !strchr("!%+,-./:@^_ ", *c))
         error(1, 0, "Invalid character read on line %d", linenum);
     command_t cmd = (command_t)checked_malloc(sizeof(struct command));
-    char *cmdstring = (char*)checked_malloc((next_newline - front + 1) * sizeof(char));
-    strncpy(cmdstring, front, next_newline - front);
+    char **cmdstr = (char**)checked_malloc(sizeof(char*));
+    *cmdstr = (char*)checked_malloc((next_newline - front + 1) * sizeof(char));
+    strncpy(*cmdstr, front, next_newline - front);
     cmd->type = SIMPLE_COMMAND;
-    cmd->u.word = &cmdstring;
+    cmd->u.word = cmdstr;
     cmd->status = -1;
     *startpos = next_newline;
-    linenum++;
     return cmd;
   }
   err(1, 0, "we should not have made it here");
 }
 
+command_t
+build_if_command(char **startpos, char *endpos)
+{
+  return 0;
+}
+
+command_t
+build_while_command(char **startpos, char *endpos)
+{
+  return 0;
+}
+
+command_t
+build_until_command(char **startpos, char *endpos)
+{
+  return 0;
+}
 
 command_t
 read_command_stream (command_stream_t s)
@@ -164,9 +187,5 @@ read_command_stream (command_stream_t s)
     return NULL;
   }
   
-  command_t comm = s->commands[s->command_idx];
-  s->command_idx++;
-  
-  // Do we need to free anything?
-  return comm;
+  return s->commands[s->command_idx++];
 }
