@@ -111,56 +111,57 @@ build_command(char **startpos, char *endpos)
       linenum++;
     front++;
   }
+  *startpos = front;
+
   if (front == endpos)
   {
     // no text left
-    *startpos = front;
     return NULL;
   }
   if ((endpos - front) >= 2 && front[0] == 'i' && front[1] == 'f' &&
-      front[2] == ' ')
+      isspace(front[2]))
   {
     return build_if_command(startpos, endpos);
   }
   else if ((endpos - front) >= 5 && front[0] == 'w' && front[1] == 'h'
            && front[2] == 'i' && front[3] == 'l' && front[4] == 'e'
-           && front[5] == ' ')
+           && isspace(front[5]))
   {
     return build_while_command(startpos, endpos);
   }
   else if ((endpos - front) >= 5 && front[0] == 'u' && front[1] == 'n'
            && front[2] == 't' && front[3] == 'i' && front[4] == 'l'
-           && front[5] == ' ')
+           && isspace(front[5]))
   {
     return build_until_command(startpos, endpos);
   }
-  char *next_newline = strchr(front, '\n');
-  if (!next_newline)
-    error(1, 0, "didn't find a newline"); // FIXME: deal with end of file
+  char *endsearch = strchr(front, '\n');
+  if (!endsearch || endsearch > endpos)
+    endsearch = endpos; // FIXME: deal with end of file
   // Search for a pipe or redirect
-  char *pipe = memchr(front, '|', next_newline - front);
-  char *left_redir = memchr(front, '<', next_newline - front);
-  char *right_redir = memchr(front, '>', next_newline - front);
+  char *pipe = memchr(front, '|', endsearch - front);
+  char *left_redir = memchr(front, '<', endsearch - front);
+  char *right_redir = memchr(front, '>', endsearch - front);
   
   // TODO: Deal with this shit
   
   // It must be a simple command
   if (!pipe && !left_redir && !right_redir)
   {
-    for (char* c = front; c != next_newline; c++)
+    for (char* c = front; c != endsearch; c++)
       if (!isalnum(*c) && !strchr("!%+,-./:@^_ ", *c))
         error(1, 0, "Invalid character read on line %d", linenum);
     command_t cmd = (command_t)checked_malloc(sizeof(struct command));
     char **cmdstr = (char**)checked_malloc(2 * sizeof(char*));
     cmdstr[1] = 0;
-    *cmdstr = (char*)checked_malloc((next_newline - front + 1) * sizeof(char));
-    strncpy(*cmdstr, front, next_newline - front);
-    (*cmdstr)[next_newline-front] = 0;
+    *cmdstr = (char*)checked_malloc((endsearch - front + 1) * sizeof(char));
+    strncpy(*cmdstr, front, endsearch - front);
+    (*cmdstr)[endsearch-front] = 0;
     cmd->type = SIMPLE_COMMAND;
     cmd->u.word = cmdstr;
     cmd->status = -1;
     cmd->input = cmd->output = NULL;
-    *startpos = next_newline;
+    *startpos = endsearch;
     return cmd;
   }
   error(1, 0, "we should not have made it here");
@@ -169,6 +170,34 @@ build_command(char **startpos, char *endpos)
 command_t
 build_if_command(char **startpos, char *endpos)
 {
+  int numInteriorIfs = 0;
+  
+  char *front = *startpos;
+  
+  while (1)
+  {
+    if (front == endpos)
+    {
+      // no text left
+      *startpos = front;
+      return NULL;
+    }
+    if ((endpos - front) >= 2 && front[0] == 'i' && front[1] == 'f' &&
+        isspace(front[2]))
+    {
+      numInteriorIfs++;
+    }
+    if ((endpos - front) >= 1 && front[0] == 'f' && front[1] == 'i')
+    {
+      numInteriorIfs--;
+    }
+    else if ((endpos - front) >= 4 && front[0] == 't' && front[1] == 'h'
+             && front[2] == 'e' && front[3] == 'n' && front[4] == ' ')
+    {
+    }
+    front++;
+  }
+
   // Build_command on everything before THEN
   // store resulting command in u.command[0]
   
@@ -178,7 +207,7 @@ build_if_command(char **startpos, char *endpos)
   // Build_command on everything between ELSE and FI (optional)
   // store resulting command in u.command[2]
   
-  return 0;
+  error(1, 0, "we should not have made it here");
 }
 
 command_t
