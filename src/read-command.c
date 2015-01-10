@@ -71,6 +71,7 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
   return buf;
 }
 
+// TODO: Free all dynamically allocated memory
 
 command_stream_t
 make_command_stream (int (*get_next_byte) (void *),
@@ -136,13 +137,14 @@ build_command(char **startpos, char *endpos)
   char *next_newline = strchr(front, '\n');
   if (!next_newline)
     error(1, 0, "didn't find a newline"); // FIXME: deal with end of file
-  // Search for a pipe
+  // Search for a pipe or redirect
   char *pipe = memchr(front, '|', next_newline - front);
   char *left_redir = memchr(front, '<', next_newline - front);
   char *right_redir = memchr(front, '>', next_newline - front);
   
   // TODO: Deal with this shit
   
+  // It must be a simple command
   if (!pipe && !left_redir && !right_redir)
   {
     for (char* c = front; c != next_newline; c++)
@@ -167,6 +169,15 @@ build_command(char **startpos, char *endpos)
 command_t
 build_if_command(char **startpos, char *endpos)
 {
+  // Build_command on everything before THEN
+  // store resulting command in u.command[0]
+  
+  // Build_command on everything between THEN and ELSE
+  // store resulting command in u.command[1]
+  
+  // Build_command on everything between ELSE and FI (optional)
+  // store resulting command in u.command[2]
+  
   return 0;
 }
 
@@ -185,9 +196,6 @@ build_until_command(char **startpos, char *endpos)
 command_t
 read_command_stream (command_stream_t s)
 {
-  /* FIXME: Replace this with your implementation too.  */
-  //error (1, 0, "command reading not yet implemented");
-  
   // No more commands
   if (s->command_idx == s->num_commands) {
     return NULL;
