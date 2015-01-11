@@ -199,6 +199,7 @@ build_if_command(char **startpos, char *endpos)
   cmd->type = IF_COMMAND;
   cmd->status = -1;
   cmd->input = cmd->output = NULL;
+  memset(cmd->u.command, 0, 3 * sizeof(command_t)); // zero out the command ptrs
   
   while (front < endpos) // TODO: Veryify < or <= ?
   {
