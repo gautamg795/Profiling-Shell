@@ -154,11 +154,13 @@ build_command(char **startpos, char *endpos)
   }
   else if (word_at_pos(front, endpos, "while"))
   {
-    return build_while_command(startpos, endpos);
+    front = *startpos = front+5; //+5 to skip the while
+    return build_loop_command(startpos, endpos, WHILE_COMMAND);
   }
   else if (word_at_pos(front, endpos, "until"))
   {
-    return build_until_command(startpos, endpos);
+    front = *startpos = front+5; //+5 to skip the until
+    return build_loop_command(startpos, endpos, UNTIL_COMMAND);
   }
   char *endsearch = strchr(front, '\n');
   if (!endsearch || endsearch > endpos)
@@ -206,7 +208,7 @@ build_if_command(char **startpos, char *endpos)
   cmd->input = cmd->output = NULL;
   memset(cmd->u.command, 0, 3 * sizeof(command_t)); // zero out the command ptrs
   
-  while (front < endpos) // TODO: Veryify < or <= ?
+  while (front < endpos) // TODO: Verify < or <= ?
   {
     if (isspace(*front)) {
       front++;
@@ -267,9 +269,57 @@ build_if_command(char **startpos, char *endpos)
 }
 
 command_t
-build_while_command(char **startpos, char *endpos)
+build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
 {
-  return 0;
+  int numInteriorLoops = 0;
+  
+  char *front = *startpos;
+  
+  command_t cmd = (command_t)checked_malloc(sizeof(struct command));
+  cmd->type = cmdtype; // Can be WHILE or UNTIL
+  cmd->status = -1;
+  cmd->input = cmd->output = NULL;
+  memset(cmd->u.command, 0, 3 * sizeof(command_t)); // zero out the command ptrs
+  
+  while (front < endpos) // TODO: Verify < or <= ?
+  {
+    if (isspace(*front)) {
+      front++;
+      continue;
+    }
+    
+    // We're done!
+    if (word_at_pos(front, endpos, "done") && numInteriorLoops == 0)
+    {
+      // Build_command on everything between DO and DONE
+      // store resulting command in u.command[1]
+      cmd->u.command[1] = build_command(startpos, front);
+      
+      // TODO: How do we update startpos to note that we are done with this while / until ?
+      *startpos = front+5;
+      break;
+    }
+    
+    if (word_at_pos(front, endpos, "while") || word_at_pos(front, endpos, "until"))
+    {
+      numInteriorLoops++;
+    }
+    else if (word_at_pos(front, endpos, "done"))
+    {
+      numInteriorLoops--;
+    }
+    else if (word_at_pos(front, endpos, "do") && numInteriorLoops == 0)
+    {
+      // Build_command on everything before DO
+      // store resulting command in u.command[0]
+      cmd->u.command[0] = build_command(startpos, front);
+      front = *startpos = front+2; // +2 to pass over the do
+    }
+    
+    front++;
+  }
+  
+  return cmd;
 }
 
 command_t

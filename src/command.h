@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdbool.h>
+enum command_type;
 
 typedef struct command *command_t;
 typedef struct command_stream *command_stream_t;
@@ -22,8 +23,7 @@ typedef struct command_stream *command_stream_t;
 char *read_script(int (*get_next_byte) (void *), void *arg, unsigned long *len);
 command_t build_command(char **startpos, char *endpos);
 command_t build_if_command(char **startpos, char *endpos);
-command_t build_while_command(char **startpos, char *endpos);
-command_t build_until_command(char **startpos, char *endpos);
+command_t build_loop_command(char **startpos, char *endpos, enum command_type cmdtype);
 bool word_at_pos(char *startpos, char *endpos, char *word);
 
 /* Create a command stream from GETBYTE and ARG.  A reader of
