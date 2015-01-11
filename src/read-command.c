@@ -107,6 +107,7 @@ free_command_stream(command_stream_t stream)
     return;
   for (int i = 0; i < stream->num_commands; i++)
     free_command(stream->commands[i]);
+  free(stream->commands);
   free(stream);
 }
 
