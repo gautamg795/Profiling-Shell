@@ -93,7 +93,7 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
       local_linenum++;
     if (byte == EOF)
       break;
-    if (!isalnum(byte) && !isspace(byte) && !strchr("!%+,-./:@^_ ",byte))
+    if (!isalnum(byte) && !isspace(byte) && !strchr("!%+,-./:@^_;",byte))
       error(1, 0, "Invalid character encountered on line %u", local_linenum);
     buf[cur_size++] = byte;
   }
