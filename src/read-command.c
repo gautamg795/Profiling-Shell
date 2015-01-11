@@ -100,6 +100,32 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
 }
 
 // TODO: Free all dynamically allocated memory
+void
+free_command_stream(command_stream_t stream)
+{
+  if (!stream)
+    return;
+  for (int i = 0; i < stream->num_commands; i++)
+    free_command(stream->commands[i]);
+}
+
+void
+free_command(command_t cmd)
+{
+  if (cmd->type == SIMPLE_COMMAND)
+  {
+    free(cmd->u.word[0]);
+    free(cmd->u.word);
+  }
+  else
+  {
+    for (int i = 0; i < 3; i++)
+      if (cmd->u.command[i] != NULL)
+        free_command(cmd->u.command[i]);
+  }
+  free(cmd);
+  return;
+}
 
 command_stream_t
 make_command_stream (int (*get_next_byte) (void *),

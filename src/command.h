@@ -31,7 +31,8 @@ bool word_at_pos(char *startpos, char *endpos, char *word);
    GETBYTE will return the next input byte, or a negative number
    (setting errno) on failure.  */
 command_stream_t make_command_stream (int (*getbyte) (void *), void *arg);
-
+void free_command_stream(command_stream_t stream);
+void free_command(command_t cmd);
 /* Prepare for profiling to the file FILENAME.  If FILENAME is null or
    cannot be written to, set errno and return -1.  Otherwise, return a
    nonnegative integer flag useful as an argument to
