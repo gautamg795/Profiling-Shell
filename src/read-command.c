@@ -351,12 +351,6 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
 }
 
 command_t
-build_until_command(char **startpos, char *endpos)
-{
-  return 0;
-}
-
-command_t
 read_command_stream (command_stream_t s)
 {
   // No more commands
