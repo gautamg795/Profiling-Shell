@@ -83,6 +83,11 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
       buf = checked_grow_alloc(buf, &buf_size);
     }
     int byte = get_next_byte(arg);
+    if (byte == '#')
+    {
+      while ((byte = get_next_byte(arg)) != '\n')
+        continue;
+    }
     if (byte == EOF)
       break;
     buf[cur_size++] = byte;
