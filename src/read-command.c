@@ -144,6 +144,7 @@ build_command(char **startpos, char *endpos)
   }
   if (word_at_pos(front, endpos, "if"))
   {
+    front = *startpos = front+2; //+2 to skip the if
     return build_if_command(startpos, endpos);
   }
   else if (word_at_pos(front, endpos, "while"))
@@ -190,17 +191,48 @@ command_t
 build_if_command(char **startpos, char *endpos)
 {
   int numInteriorIfs = 0;
+  char *posOfElse = NULL;
   
   char *front = *startpos;
   
-  while (1)
+  command_t cmd = (command_t)checked_malloc(sizeof(struct command));
+  cmd->type = IF_COMMAND;
+  cmd->status = -1;
+  cmd->input = cmd->output = NULL;
+  
+  while (front < endpos) // TODO: Veryify < or <= ?
   {
-    if (front == endpos)
-    {
-      // no text left
-      *startpos = front;
-      return NULL;
+    if (isspace(*front)) {
+      front++;
+      continue;
     }
+    
+    // We're done!
+    if (word_at_pos(front, endpos, "fi") && numInteriorIfs == 0)
+    {
+      // No else statement
+      if (posOfElse == NULL)
+      {
+        // Build_command on everything between THEN and FI
+        // store resulting command in u.command[1]
+        cmd->u.command[1] = build_command(startpos, front);
+      }
+      else
+      {
+        // Build_command on everything between THEN and ELSE
+        // store resulting command in u.command[1]
+        cmd->u.command[1] = build_command(startpos, posOfElse);
+        
+        // Build_command on everything between ELSE and FI
+        // store resulting command in u.command[2]
+        *startpos = posOfElse+4; // +4 so that else is not included
+        cmd->u.command[2] = build_command(startpos, front);
+      }
+      // TODO: How do we update startpos to note that we are done with this if?
+      *startpos = front+2;
+      break;
+    }
+    
     if (word_at_pos(front, endpos, "if"))
     {
       numInteriorIfs++;
@@ -209,23 +241,23 @@ build_if_command(char **startpos, char *endpos)
     {
       numInteriorIfs--;
     }
-    else if (word_at_pos(front, endpos, "then"))
+    else if (word_at_pos(front, endpos, "then") && numInteriorIfs == 0)
     {
-      
+      // Build_command on everything before THEN
+      // store resulting command in u.command[0]
+      cmd->u.command[0] = build_command(startpos, front);
+      front = *startpos = front+4; // +4 to pass over the then
     }
+    else if (word_at_pos(front, endpos, "else") && numInteriorIfs == 0)
+    {
+      posOfElse = front;
+      front = front+4; // pass over the else but don't update startpos
+    }
+    
     front++;
   }
-
-  // Build_command on everything before THEN
-  // store resulting command in u.command[0]
   
-  // Build_command on everything between THEN and ELSE
-  // store resulting command in u.command[1]
-  
-  // Build_command on everything between ELSE and FI (optional)
-  // store resulting command in u.command[2]
-  
-  error(1, 0, "we should not have made it here");
+  return cmd;
 }
 
 command_t
