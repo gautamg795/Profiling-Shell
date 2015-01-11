@@ -221,36 +221,18 @@ build_if_command(char **startpos, char *endpos)
       {
         // Build_command on everything between THEN and FI
         // store resulting command in u.command[1]
-        char *tmp = front;
-        do
-          tmp--;
-        while (isspace(*tmp));
-        if (*tmp != ';')
-          tmp++;
-        cmd->u.command[1] = build_command(startpos, tmp);
+        cmd->u.command[1] = build_command(startpos, front);
       }
       else
       {
         // Build_command on everything between THEN and ELSE
         // store resulting command in u.command[1]
-        char *tmp = posOfElse;
-        do
-          tmp--;
-        while (isspace(*tmp));
-        if (*tmp != ';')
-          tmp++;
-        cmd->u.command[1] = build_command(startpos, tmp);
+        cmd->u.command[1] = build_command(startpos, posOfElse);
         
         // Build_command on everything between ELSE and FI
         // store resulting command in u.command[2]
         *startpos = posOfElse+4; // +4 so that else is not included
-        tmp = front;
-        do
-          tmp--;
-        while (isspace(*tmp));
-        if (*tmp != ';')
-          tmp++;
-        cmd->u.command[2] = build_command(startpos, tmp);
+        cmd->u.command[2] = build_command(startpos, front);
       }
       // TODO: How do we update startpos to note that we are done with this if?
       *startpos = front+2;
@@ -269,13 +251,7 @@ build_if_command(char **startpos, char *endpos)
     {
       // Build_command on everything before THEN
       // store resulting command in u.command[0]
-      char *tmp = front;
-      do
-        tmp--;
-      while (isspace(*tmp));
-      if (*tmp != ';')
-        tmp++;
-      cmd->u.command[0] = build_command(startpos, tmp);
+      cmd->u.command[0] = build_command(startpos, front);
       front = *startpos = front+4; // +4 to pass over the then
     }
     else if (word_at_pos(front, endpos, "else") && numInteriorIfs == 0)
