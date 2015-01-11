@@ -193,20 +193,37 @@ build_command(char **startpos, char *endpos)
   char *endsearch = strchr(front, '\n');
   if (!endsearch || endsearch > endpos)
     endsearch = endpos; // FIXME: deal with end of file
-  // Search for a pipe or redirect
+  
+  // If semicolon is at the end of the command/ search space, ignore it! Decrease the search space.
+  do
+  {
+    if (front == endsearch)
+    {
+      // no text left
+      return NULL;
+    }
+    endsearch--;
+  } while (isspace(*endsearch));
+
+  if (*endsearch != ';')
+    endsearch++;
+    
+  // Search for a semicolon, pipe, or redirect in the new search space
+  char *semicolon = memchr(front, ';', endsearch - front);
   char *pipe = memchr(front, '|', endsearch - front);
   char *left_redir = memchr(front, '<', endsearch - front);
   char *right_redir = memchr(front, '>', endsearch - front);
   
-  // TODO: Deal with this shit
+  command_t cmd = (command_t)checked_malloc(sizeof(struct command));
+  cmd->status = -1;
+  cmd->input = cmd->output = NULL;
   
   // It must be a simple command
-  if (!pipe && !left_redir && !right_redir)
+  if (!semicolon && !pipe && !left_redir && !right_redir)
   {
     for (char* c = front; c != endsearch; c++)
-      if (!isalnum(*c) && !strchr(";!%+,-./:@^_ ", *c))
+      if (!isalnum(*c) && !strchr("!%+,-./:@^_ ", *c))
         error(1, 0, "Invalid character read on line %d", linenum);
-    command_t cmd = (command_t)checked_malloc(sizeof(struct command));
     char **cmdstr = (char**)checked_malloc(2 * sizeof(char*));
     cmdstr[1] = 0;
     *cmdstr = (char*)checked_malloc((endsearch - front + 1) * sizeof(char));
@@ -214,12 +231,39 @@ build_command(char **startpos, char *endpos)
     (*cmdstr)[endsearch-front] = 0;
     cmd->type = SIMPLE_COMMAND;
     cmd->u.word = cmdstr;
-    cmd->status = -1;
-    cmd->input = cmd->output = NULL;
     *startpos = endsearch;
     return cmd;
   }
-  error(1, 0, "we should not have made it here");
+  
+  // TODO: Deal with this shit
+  
+  if (!semicolon)
+    semicolon = endsearch;
+  if (!pipe)
+    pipe = endsearch;
+  
+  memset(cmd->u.command, 0, 3 * sizeof(command_t)); // zero out the command ptrs
+  
+  // Always deal with semicolon first (sequence commands)!
+  if (semicolon < endsearch)
+  {
+    cmd->type = SEQUENCE_COMMAND;
+    cmd->u.command[0] = build_command(startpos, semicolon);
+    *startpos = semicolon+1; // +1 to get rid of semicolon?
+    cmd->u.command[1] = build_command(startpos, endsearch);
+    return cmd;
+  }
+  // Deal with pipe second!
+  else if (pipe < endsearch)
+  {
+    cmd->type = PIPE_COMMAND;
+    cmd->u.command[0] = build_command(startpos, pipe);
+    *startpos = pipe+1; // +1 to get rid of pipe?
+    cmd->u.command[1] = build_command(startpos, endsearch);
+    return cmd;
+  }
+
+  error(1, 0, "We should not have made it here");
 }
 
 command_t
