@@ -230,7 +230,7 @@ build_command(char **startpos, char *endpos)
     cmdstr[1] = 0;
     *cmdstr = (char*)checked_malloc((endsearch - front + 1) * sizeof(char));
     strncpy(*cmdstr, front, endsearch - front);
-    (*cmdstr)[endsearch-front] = 0;
+    cmdstr[0][endsearch-front] = 0; // add the null byte
     cmd->type = SIMPLE_COMMAND;
     cmd->u.word = cmdstr;
     *startpos = endsearch;
