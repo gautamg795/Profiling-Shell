@@ -75,6 +75,7 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
 {
   size_t buf_size = 1024;
   size_t cur_size = 0;
+  uint local_linenum = 1;
   char *buf = (char *)checked_malloc(buf_size * sizeof(char));
   while (true)
   {
@@ -88,8 +89,12 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
       while ((byte = get_next_byte(arg)) != '\n')
         continue;
     }
+    if (byte == '\n')
+      local_linenum++;
     if (byte == EOF)
       break;
+    if (!isalnum(byte) && !isspace(byte) && !strchr("!%+,-./:@^_ ",byte))
+      error(1, 0, "Invalid character encountered on line %u", local_linenum);
     buf[cur_size++] = byte;
   }
   if (cur_size > 0 && buf[cur_size-1] != '\n')
