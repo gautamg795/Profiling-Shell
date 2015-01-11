@@ -226,9 +226,6 @@ build_command(char **startpos, char *endpos)
   // It must be a simple command
   if (!semicolon && !pipe && !left_redir && !right_redir)
   {
-    for (char* c = front; c != endsearch; c++)
-      if (!isalnum(*c) && !strchr("!%+,-./:@^_ ", *c))
-        error(1, 0, "Invalid character read on line %d", linenum);
     char **cmdstr = (char**)checked_malloc(2 * sizeof(char*));
     cmdstr[1] = 0;
     *cmdstr = (char*)checked_malloc((endsearch - front + 1) * sizeof(char));
