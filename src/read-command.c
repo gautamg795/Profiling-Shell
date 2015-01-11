@@ -169,7 +169,7 @@ build_command(char **startpos, char *endpos)
   if (!pipe && !left_redir && !right_redir)
   {
     for (char* c = front; c != endsearch; c++)
-      if (!isalnum(*c) && !strchr("!%+,-./:@^_ ", *c))
+      if (!isalnum(*c) && !strchr(";!%+,-./:@^_ ", *c))
         error(1, 0, "Invalid character read on line %d", linenum);
     command_t cmd = (command_t)checked_malloc(sizeof(struct command));
     char **cmdstr = (char**)checked_malloc(2 * sizeof(char*));
