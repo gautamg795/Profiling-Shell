@@ -318,19 +318,22 @@ build_command(char **startpos, char *endpos)
   {
     front = *startpos = front+2; //+2 to skip the if
     free(cmd); // we don't need the cmd
-    return build_if_command(startpos, endpos);
+    cmd = build_if_command(startpos, endpos);
+    return cmd;
   }
   else if (word_at_pos(front, endpos, "while"))
   {
     front = *startpos = front+5; //+5 to skip the while
     free(cmd); // we don't need the cmd
-    return build_loop_command(startpos, endpos, WHILE_COMMAND);
+    cmd = build_loop_command(startpos, endpos, WHILE_COMMAND);
+    return cmd;
   }
   else if (word_at_pos(front, endpos, "until"))
   {
     front = *startpos = front+5; //+5 to skip the until
     free(cmd); // we don't need the cmd
-    return build_loop_command(startpos, endpos, UNTIL_COMMAND);
+    cmd = build_loop_command(startpos, endpos, UNTIL_COMMAND);
+    return cmd;
   }
   
   // Deal with pipe afterwards
