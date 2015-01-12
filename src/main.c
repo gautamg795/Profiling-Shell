@@ -71,6 +71,7 @@ main (int argc, char **argv)
     error (1, errno, "%s: cannot open", script_name);
   command_stream_t command_stream =
     make_command_stream (get_next_byte, script_stream);
+  fclose(script_stream);
   int profiling = -1;
   if (profile_name)
     {
