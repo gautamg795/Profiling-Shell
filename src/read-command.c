@@ -47,6 +47,21 @@ struct command_stream
 
 static int linenum = 1;
 
+void
+add_semicolon(char *startpos, char *endpos)
+{
+  for (char *c = startpos; startpos <= endpos; c++)
+  {
+    if (*c == ';')
+      return;
+    if (*c == '\n')
+    {
+      *c = ';';
+      return;
+    }
+  }
+}
+
 bool
 word_at_pos(char *startpos, char *endpos, char *word)
 {
@@ -318,6 +333,7 @@ build_if_command(char **startpos, char *endpos)
     // We're done!
     if (word_at_pos(front, endpos, "fi") && numInteriorIfs == 0)
     {
+      add_semicolon(front + 2, endpos);
       // No else statement
       if (posOfElse == NULL)
       {
@@ -347,6 +363,7 @@ build_if_command(char **startpos, char *endpos)
     }
     else if (word_at_pos(front, endpos, "fi"))
     {
+      add_semicolon(front + 2, endpos);
       numInteriorIfs--;
     }
     else if (word_at_pos(front, endpos, "then") && numInteriorIfs == 0)
@@ -391,17 +408,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     // We're done!
     if (word_at_pos(front, endpos, "done") && numInteriorLoops == 0)
     {
-      char *c = front + 3;
-      while (c++ <= endpos)
-      {
-        if (*c == ';')
-          break;
-        if (*c == '\n')
-        {
-          *c = ';';
-          break;
-        }
-      }
+      add_semicolon(front + 4, endpos);
       // Build_command on everything between DO and DONE
       // store resulting command in u.command[1]
       cmd->u.command[1] = build_command(startpos, front);
@@ -417,17 +424,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     }
     else if (word_at_pos(front, endpos, "done"))
     {
-      char *c = front + 3;
-      while (c++ <= endpos)
-      {
-        if (*c == ';')
-          break;
-        if (*c == '\n')
-        {
-          *c = ';';
-          break;
-        }
-      }
+      add_semicolon(front + 4, endpos);
       numInteriorLoops--;
     }
     else if (word_at_pos(front, endpos, "do") && numInteriorLoops == 0)
