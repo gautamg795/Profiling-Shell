@@ -123,6 +123,17 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
     buf[cur_size++] = '\n';
   buf[cur_size] = '\0';
   *len = cur_size;
+  for (char *c = buf; c < buf + cur_size; c++)
+  {
+    if (word_at_pos(c, buf + cur_size, "fi"))
+    {
+      add_semicolon(c, buf + cur_size);
+    }
+    else if (word_at_pos(c, buf + cur_size, "done"))
+    {
+      add_semicolon(c, buf + cur_size);
+    }
+  }
   return buf;
 }
 
@@ -333,7 +344,6 @@ build_if_command(char **startpos, char *endpos)
     // We're done!
     if (word_at_pos(front, endpos, "fi") && numInteriorIfs == 0)
     {
-      add_semicolon(front + 2, endpos);
       // No else statement
       if (posOfElse == NULL)
       {
@@ -363,7 +373,6 @@ build_if_command(char **startpos, char *endpos)
     }
     else if (word_at_pos(front, endpos, "fi"))
     {
-      add_semicolon(front + 2, endpos);
       numInteriorIfs--;
     }
     else if (word_at_pos(front, endpos, "then") && numInteriorIfs == 0)
@@ -408,7 +417,6 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     // We're done!
     if (word_at_pos(front, endpos, "done") && numInteriorLoops == 0)
     {
-      add_semicolon(front + 4, endpos);
       // Build_command on everything between DO and DONE
       // store resulting command in u.command[1]
       cmd->u.command[1] = build_command(startpos, front);
@@ -424,7 +432,6 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     }
     else if (word_at_pos(front, endpos, "done"))
     {
-      add_semicolon(front + 4, endpos);
       numInteriorLoops--;
     }
     else if (word_at_pos(front, endpos, "do") && numInteriorLoops == 0)
