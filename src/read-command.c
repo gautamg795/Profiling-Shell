@@ -51,7 +51,7 @@ bool
 word_at_pos(char *startpos, char *endpos, char *word)
 {
   size_t len = strlen(word);
-  if (endpos - startpos < len + 1) {
+  if (endpos - startpos < len) {
     return false;
   }
   
@@ -198,7 +198,7 @@ build_command(char **startpos, char *endpos)
   char *endsearch = strchr(front, '\n');
   if (!endsearch || endsearch > endpos)
     endsearch = endpos; // FIXME: deal with end of file
-  
+  char *original_end = endsearch;
   // If semicolon is at the end of the command/search space, ignore it! Decrease the search space.
   do
   {
@@ -208,7 +208,10 @@ build_command(char **startpos, char *endpos)
       return NULL;
     }
     endsearch--;
-  } while (isspace(*endsearch));
+    if (!isspace(*endsearch) && *endsearch != ';')
+      break;
+  } while (true);
+
 
   if (*endsearch != ';')
     endsearch++;
@@ -233,7 +236,7 @@ build_command(char **startpos, char *endpos)
     cmdstr[0][endsearch-front] = 0; // add the null byte
     cmd->type = SIMPLE_COMMAND;
     cmd->u.word = cmdstr;
-    *startpos = endsearch;
+    *startpos = original_end;
     return cmd;
   }
   
