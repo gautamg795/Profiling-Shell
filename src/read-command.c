@@ -389,8 +389,8 @@ build_command(char **startpos, char *endpos)
       else // no right_redir
       {
         cmd->input = (char *)checked_malloc((original_endsearch - left_redir + 2) * sizeof(char));
-        memcpy(cmd->input, left_redir, original_endsearch - left_redir + 1);
-        cmd->input[original_endsearch - left_redir + 1] = '\0';
+        memcpy(cmd->input, left_redir, original_endsearch - left_redir);
+        cmd->input[original_endsearch - left_redir] = '\0';
       }
     }
     
