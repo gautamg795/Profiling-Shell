@@ -260,8 +260,8 @@ build_command(char **startpos, char *endpos)
     return build_loop_command(startpos, endpos, UNTIL_COMMAND);
   }
   
-  // Deal with pipe second!
-  else if (pipe)
+  // Deal with pipe afterwards
+  if (pipe)
   {
     cmd->type = PIPE_COMMAND;
     cmd->u.command[0] = build_command(startpos, pipe);
