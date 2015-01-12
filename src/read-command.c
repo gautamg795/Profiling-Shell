@@ -340,8 +340,47 @@ build_command(char **startpos, char *endpos)
   }
   
   // It must be a simple command
-  if (!semicolon && !pipe && !left_redir && !right_redir && !left_paren)
+  if (!semicolon && !pipe && !left_paren)
   {
+    if (right_redir)
+    {
+      char *redir_pos = right_redir;
+      do
+        redir_pos++;
+      while (isspace(*redir_pos));
+      cmd->output = (char *)checked_malloc((endsearch - redir_pos + 1) * sizeof(char));
+      memcpy(cmd->output, redir_pos, endsearch - redir_pos);
+      cmd->output[endsearch - redir_pos] = '\0';
+    }
+    if (left_redir)
+    {
+      char *original_endsearch = endsearch;
+      endsearch = left_redir;
+      do
+        endsearch--;
+      while (isspace(*endsearch));
+      endsearch++;
+      do
+        left_redir++;
+      while (isspace(*left_redir));
+      if (right_redir)
+      {
+        cmd->input = (char *)checked_malloc((right_redir - left_redir + 1) * sizeof(char));
+        char *end = right_redir;
+        do
+          end--;
+        while (isspace(*end));
+        memcpy(cmd->input, left_redir, end - left_redir + 1);
+        cmd->input[end - left_redir + 1] = '\0';
+      }
+      else // no right_redir
+      {
+        cmd->input = (char *)checked_malloc((original_endsearch - left_redir + 1) * sizeof(char));
+        memcpy(cmd->input, left_redir, original_endsearch - left_redir + 1);
+        cmd->input[endsearch - original_endsearch + 1] = '\0';
+      }
+    }
+    
     char **cmdstr = (char**)checked_malloc(2 * sizeof(char*));
     cmdstr[1] = 0;
     *cmdstr = (char*)checked_malloc((endsearch - front + 1) * sizeof(char));
