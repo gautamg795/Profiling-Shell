@@ -344,13 +344,15 @@ build_command(char **startpos, char *endpos)
   {
     if (right_redir)
     {
+      char *original_endsearch = endsearch;
+      endsearch = right_redir;
       char *redir_pos = right_redir;
       do
         redir_pos++;
       while (isspace(*redir_pos));
-      cmd->output = (char *)checked_malloc((endsearch - redir_pos + 1) * sizeof(char));
-      memcpy(cmd->output, redir_pos, endsearch - redir_pos);
-      cmd->output[endsearch - redir_pos] = '\0';
+      cmd->output = (char *)checked_malloc((original_endsearch - redir_pos + 1) * sizeof(char));
+      memcpy(cmd->output, redir_pos, original_endsearch - redir_pos);
+      cmd->output[original_endsearch - redir_pos] = '\0';
     }
     if (left_redir)
     {
