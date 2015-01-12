@@ -156,7 +156,7 @@ make_command_stream (int (*get_next_byte) (void *),
     }
     command_t cmd = build_command(&start, end);
     if (!cmd)
-      continue;
+      break;
     stream->commands[stream->num_commands++] = cmd;
   }
   free(script);
