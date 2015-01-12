@@ -230,12 +230,7 @@ build_command(char **startpos, char *endpos)
   cmd->status = -1;
   cmd->input = cmd->output = NULL;
   
-  // TODO: Deal with this shit
-  
-//  if (!semicolon)
-//    semicolon = endsearch;
-//  if (!pipe)
-//    pipe = endsearch;
+  // TODO: Deal with freeing memory
   
   memset(cmd->u.command, 0, 3 * sizeof(command_t)); // zero out the command ptrs
   
