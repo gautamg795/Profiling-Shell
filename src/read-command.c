@@ -152,6 +152,10 @@ free_command_stream(command_stream_t stream)
 void
 free_command(command_t cmd)
 {
+  if (cmd->input)
+    free(cmd->input);
+  if (cmd->output)
+    free(cmd->output);
   if (cmd->type == SIMPLE_COMMAND)
   {
     free(cmd->u.word[0]);
