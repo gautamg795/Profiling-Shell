@@ -77,6 +77,7 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
   size_t cur_size = 0;
   uint local_linenum = 1;
   char *buf = (char *)checked_malloc(buf_size * sizeof(char));
+  char *last_nonspace = 0;
   while (true)
   {
     if (cur_size == buf_size - 2)
@@ -90,11 +91,17 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
         continue;
     }
     if (byte == '\n')
+    {
+      if (last_nonspace && *last_nonspace == ';')
+        *last_nonspace = ' ';
       local_linenum++;
+    }
     if (byte == EOF)
       break;
     if (!isalnum(byte) && !isspace(byte) && !strchr("!%+,-./:@^_;|<>()",byte))
       error(1, 0, "Invalid character encountered on line %u", local_linenum);
+    if (!isspace(byte))
+      last_nonspace = &buf[cur_size];
     buf[cur_size++] = byte;
   }
   if (cur_size > 0 && buf[cur_size-1] != '\n')
