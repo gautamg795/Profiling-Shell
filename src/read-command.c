@@ -238,6 +238,7 @@ build_command(char **startpos, char *endpos)
   char *semicolon = NULL;
   int internalIf = 0;
   int internalLoops = 0;
+  int internalSubshells = 0;
   for (char *c = front; c != endsearch; c++)
   {
     if (word_at_pos(c, endsearch, "if"))
@@ -248,8 +249,12 @@ build_command(char **startpos, char *endpos)
       internalIf--;
     else if (word_at_pos(c, endsearch, "done"))
       internalLoops--;
+    else if (*c == '(')
+      internalSubshells++;
+    else if (*c == ')')
+      internalSubshells--;
     else if (*c == ';')
-      if (internalLoops == 0 && internalIf == 0)
+      if (internalLoops == 0 && internalIf == 0 && internalSubshells == 0)
       {
         semicolon = c;
         break;
@@ -258,6 +263,25 @@ build_command(char **startpos, char *endpos)
   char *pipe = memchr(front, '|', endsearch - front);
   char *left_redir = memchr(front, '<', endsearch - front);
   char *right_redir = memchr(front, '>', endsearch - front);
+  char *left_paren = memchr(front, '(', endsearch - front);
+  char *right_paren = NULL;
+  
+  internalSubshells = 0;
+  if (left_paren) {
+    for (char *c = left_paren; c != endpos; c++)
+    {
+      if (*c == '(')
+        internalSubshells++;
+      else if (*c == ')')
+        internalSubshells--;
+      
+      if (*c == ')' && internalSubshells == 0)
+      {
+        right_paren = c;
+        break;
+      }
+    }
+  }
   
   command_t cmd = (command_t)checked_malloc(sizeof(struct command));
   cmd->status = -1;
@@ -274,6 +298,15 @@ build_command(char **startpos, char *endpos)
     cmd->u.command[0] = build_command(startpos, semicolon);
     *startpos = semicolon+1; // +1 to get rid of semicolon?
     cmd->u.command[1] = build_command(startpos, endsearch);
+    return cmd;
+  }
+  
+  // Deal with subshells next
+  if (left_paren) {
+    cmd->type = SUBSHELL_COMMAND;
+    *startpos = left_paren+1;
+    cmd->u.command[0] = build_command(startpos, right_paren);
+    *startpos = right_paren + 1;
     return cmd;
   }
   
@@ -307,7 +340,7 @@ build_command(char **startpos, char *endpos)
   }
   
   // It must be a simple command
-  if (!semicolon && !pipe && !left_redir && !right_redir)
+  if (!semicolon && !pipe && !left_redir && !right_redir && !left_paren)
   {
     char **cmdstr = (char**)checked_malloc(2 * sizeof(char*));
     cmdstr[1] = 0;
