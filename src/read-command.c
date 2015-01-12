@@ -181,7 +181,6 @@ build_command(char **startpos, char *endpos)
     return NULL;
   }
   
-  
   char *endsearch = strchr(front, '\n');
   if (!endsearch || endsearch > endpos)
     endsearch = endpos; // FIXME: deal with end of file
@@ -199,11 +198,8 @@ build_command(char **startpos, char *endpos)
       break;
   } while (true);
   
-  
   if (*endsearch != ';')
     endsearch++;
-  
-  
   
   // Search for a semicolon, pipe, or redirect in the new search space
   char *semicolon = NULL;
@@ -252,16 +248,6 @@ build_command(char **startpos, char *endpos)
     cmd->u.command[1] = build_command(startpos, endsearch);
     return cmd;
   }
-  // Deal with pipe second!
-  else if (pipe)
-  {
-    cmd->type = PIPE_COMMAND;
-    cmd->u.command[0] = build_command(startpos, pipe);
-    *startpos = pipe+1; // +1 to get rid of pipe?
-    cmd->u.command[1] = build_command(startpos, endsearch);
-    return cmd;
-  }
-
   
   if (word_at_pos(front, endpos, "if"))
   {
@@ -279,6 +265,15 @@ build_command(char **startpos, char *endpos)
     return build_loop_command(startpos, endpos, UNTIL_COMMAND);
   }
   
+  // Deal with pipe second!
+  else if (pipe)
+  {
+    cmd->type = PIPE_COMMAND;
+    cmd->u.command[0] = build_command(startpos, pipe);
+    *startpos = pipe+1; // +1 to get rid of pipe?
+    cmd->u.command[1] = build_command(startpos, endsearch);
+    return cmd;
+  }
   
   // It must be a simple command
   if (!semicolon && !pipe && !left_redir && !right_redir)
@@ -293,7 +288,6 @@ build_command(char **startpos, char *endpos)
     *startpos = original_end;
     return cmd;
   }
-  
   
   error(1, 0, "We should not have made it here");
 }
