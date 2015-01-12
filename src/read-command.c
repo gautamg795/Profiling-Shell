@@ -99,7 +99,7 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
     if (byte == EOF)
       break;
     if (!isalnum(byte) && !isspace(byte) && !strchr("!%+,-./:@^_;|<>()",byte))
-      error(1, 0, "Invalid character encountered on line %u", local_linenum);
+      error(1, 0, "%u: Syntax error. Unexpected character encountered.", local_linenum);
     if (!isspace(byte))
       last_nonspace = &buf[cur_size];
     buf[cur_size++] = byte;
