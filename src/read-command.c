@@ -391,7 +391,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     // We're done!
     if (word_at_pos(front, endpos, "done") && numInteriorLoops == 0)
     {
-      char *c = front + 4;
+      char *c = front + 3;
       while (c++ <= endpos)
       {
         if (*c == ';')
@@ -417,6 +417,17 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     }
     else if (word_at_pos(front, endpos, "done"))
     {
+      char *c = front + 3;
+      while (c++ <= endpos)
+      {
+        if (*c == ';')
+          break;
+        if (*c == '\n')
+        {
+          *c = ';';
+          break;
+        }
+      }
       numInteriorLoops--;
     }
     else if (word_at_pos(front, endpos, "do") && numInteriorLoops == 0)
