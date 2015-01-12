@@ -90,7 +90,7 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
 {
   size_t buf_size = 1024;
   size_t cur_size = 0;
-  uint local_linenum = 1;
+  unsigned int local_linenum = 1;
   char *buf = (char *)checked_malloc(buf_size * sizeof(char));
   char *last_nonspace = 0;
   while (true)
