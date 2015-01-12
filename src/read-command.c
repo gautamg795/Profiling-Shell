@@ -50,7 +50,7 @@ static int linenum = 1;
 void
 add_semicolon(char *startpos, char *endpos)
 {
-  for (char *c = startpos; startpos <= endpos; c++)
+  for (char *c = startpos; c <= endpos; c++)
   {
     if (*c == ';')
       return;
