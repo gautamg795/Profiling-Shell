@@ -346,6 +346,10 @@ build_command(char **startpos, char *endpos)
     {
       char *original_endsearch = endsearch;
       endsearch = right_redir;
+      do
+        endsearch--;
+      while (isspace(*endsearch));
+      endsearch++;
       char *redir_pos = right_redir;
       do
         redir_pos++;
