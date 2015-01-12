@@ -391,6 +391,17 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     // We're done!
     if (word_at_pos(front, endpos, "done") && numInteriorLoops == 0)
     {
+      char *c = front + 4;
+      while (c++ <= endpos)
+      {
+        if (*c == ';')
+          break;
+        if (*c == '\n')
+        {
+          *c = ';';
+          break;
+        }
+      }
       // Build_command on everything between DO and DONE
       // store resulting command in u.command[1]
       cmd->u.command[1] = build_command(startpos, front);
