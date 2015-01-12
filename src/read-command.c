@@ -353,7 +353,7 @@ build_if_command(char **startpos, char *endpos)
         cmd->u.command[2] = build_command(startpos, front);
       }
       // TODO: How do we update startpos to note that we are done with this if?
-      *startpos = front+2;
+      *startpos = front+3;
       break;
     }
     
