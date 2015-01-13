@@ -111,7 +111,7 @@ word_at_pos(char *startpos, char *endpos, char *word)
 void
 errorline(char *startpos, char *endpos)
 {
-  int lines = 1;
+  int lines = 0;
   for (char *c = startpos; c <= endpos; c++)
   {
     if (*c == '\n')
@@ -134,6 +134,9 @@ bad_next_char(char *startpos, char *endpos)
     startpos++;
   while (isspace(*startpos) && startpos <= endpos);
   
+  if (!*startpos)
+    return NULL;
+  
   if (strchr(";|<>",*startpos))
   {
     return startpos;
@@ -147,6 +150,11 @@ syntax_error(char *startpos, char *endpos)
 {
   int ifnum = 0;
   int parnum = 0;
+  int loopnum =0;
+  char *last_open_paren = NULL;
+  char *last_if = NULL;
+  char *last_loop = NULL;
+  
   for (char *c = startpos; c <= endpos; c++)
   {
     if (!isalnum(*c) && !isspace(*c) && !strchr("!%+,-./:@^_;|<>()",*c))
@@ -155,7 +163,7 @@ syntax_error(char *startpos, char *endpos)
       return true;
     }
     
-    if (strchr(";|<>(",*c))
+    if (strchr("\n;|<>(",*c))
     {
       char *bad = bad_next_char(c, endpos);
       if (bad)
@@ -166,21 +174,50 @@ syntax_error(char *startpos, char *endpos)
     }
     
     if (*c == '(')
+    {
+      last_open_paren = c;
       parnum++;
+    }
     else if (*c ==')')
       parnum--;
-    
-    if (word_at_pos(c, endpos, "if"))
+    else if (word_at_pos(c, endpos, "while") || word_at_pos(c, endpos, "until"))
+    {
+      last_loop = c;
+      loopnum++;
+    }
+    else if (word_at_pos(c, endpos, "done"))
+      loopnum--;
+    else if (word_at_pos(c, endpos, "if"))
+    {
+      last_if = c;
       ifnum++;
+    }
     else if (word_at_pos(c, endpos, "fi"))
       ifnum--;
     
-    if (ifnum < 0 || parnum < 0)
+    if (ifnum < 0 || parnum < 0 || loopnum < 0)
     {
       *c = (char)178; // dotted rectangle
       return true;
     }
   }
+  
+  if (parnum)
+  {
+    *last_open_paren = (char)178; // dotted rectangle
+    return true;
+  }
+  else if (ifnum)
+  {
+    *last_if = (char)178; // dotted rectangle
+    return true;
+  }
+  else if (loopnum)
+  {
+    *last_loop = (char)178; // dotted rectangle
+    return true;
+  }
+  
   return false;
 }
 
@@ -207,6 +244,7 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
   size_t buf_size = 1024;
   size_t cur_size = 0;
   char *buf = (char *)checked_malloc(buf_size * sizeof(char));
+  buf[cur_size++] = '\n';
   char *last_nonspace = 0;
   while (true)
   {
