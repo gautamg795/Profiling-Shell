@@ -124,10 +124,29 @@ errorline(char *startpos, char *endpos)
   }
 }
 
+char *
+bad_next_char(char *startpos, char *endpos)
+{
+  if (startpos >= endpos)
+    return NULL;
+  
+  do
+    startpos++;
+  while (isspace(*startpos) && startpos <= endpos);
+  
+  if (strchr(";|<>",*startpos))
+  {
+    return startpos;
+  }
+  
+  return NULL;
+}
+
 bool
 syntax_error(char *startpos, char *endpos)
 {
   int ifnum = 0;
+  int parnum = 0;
   for (char *c = startpos; c <= endpos; c++)
   {
     if (!isalnum(*c) && !isspace(*c) && !strchr("!%+,-./:@^_;|<>()",*c))
@@ -136,12 +155,27 @@ syntax_error(char *startpos, char *endpos)
       return true;
     }
     
+    if (strchr(";|<>(",*c))
+    {
+      char *bad = bad_next_char(c, endpos);
+      if (bad)
+      {
+        *bad = (char)178; // dotted rectangle
+        return true;
+      }
+    }
+    
+    if (*c == '(')
+      parnum++;
+    else if (*c ==')')
+      parnum--;
+    
     if (word_at_pos(c, endpos, "if"))
       ifnum++;
     else if (word_at_pos(c, endpos, "fi"))
       ifnum--;
     
-    if (ifnum < 0)
+    if (ifnum < 0 || parnum < 0)
     {
       *c = (char)178; // dotted rectangle
       return true;
@@ -186,15 +220,8 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
       while ((byte = get_next_byte(arg)) != '\n')
         continue;
     }
-    if (byte == '\n')
-    {
-      if (last_nonspace && *last_nonspace == ';')
-        *last_nonspace = ' ';
-    }
     if (byte == EOF)
       break;
-    if (!isspace(byte))
-      last_nonspace = &buf[cur_size];
     buf[cur_size++] = byte;
   }
   if (cur_size > 0 && buf[cur_size-1] != '\n')
@@ -203,6 +230,16 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
   if (syntax_error(buf, &buf[cur_size]))
     errorline(buf, &buf[cur_size]);
   *len = cur_size;
+  for (char *c = buf; c < &buf[cur_size]; c++)
+  {
+    if (!isspace(*c))
+      last_nonspace = c;
+    else if (*c == '\n')
+    {
+      if (last_nonspace && *last_nonspace == ';')
+        *last_nonspace = ' ';
+    }
+  }
   return buf;
 }
 
@@ -615,6 +652,13 @@ build_if_command(char **startpos, char *endpos)
           left_redir = endsearch;
       }
       actual_endsearch = endsearch;
+      char *rect = memchr(front, (char)178, actual_endsearch - front);
+      if (rect)
+      {
+        cmd->syntaxErr = true;
+        *startpos = NULL;
+        return cmd;
+      }
       if (right_redir)
       {
         char *original_endsearch = endsearch;
