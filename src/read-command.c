@@ -144,6 +144,22 @@ syntax_error(char *startpos, char *endpos)
   return false;
 }
 
+bool
+cmd_has_bad_syntax(command_t cmd)
+{
+  if (!cmd)
+    return false;
+  bool bad = false;
+  bad = cmd->syntaxErr || bad;
+  if (cmd->type != SIMPLE_COMMAND)
+  {
+    for (int i = 0; i < 3; i++)
+    {
+      bad = cmd_has_bad_syntax(cmd->u.command[i]) || bad;
+    }
+  }
+  return bad;
+}
 
 char *
 read_script(int (*get_next_byte) (void *), void *arg, size_t *len)

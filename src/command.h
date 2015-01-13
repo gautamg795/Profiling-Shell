@@ -28,6 +28,7 @@ bool word_at_pos(char *startpos, char *endpos, char *word);
 void add_semicolon(char *startpos, char *endpos);
 bool syntax_error(char *startpos, char *endpos);
 void errorline(char *startpos, char *endpos);
+bool cmd_has_bad_syntax(command_t cmd);
 
 /* Create a command stream from GETBYTE and ARG.  A reader of
    the command stream will invoke GETBYTE (ARG) to get the next byte.
