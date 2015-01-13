@@ -23,6 +23,8 @@
 #define error(args...) errc(args)
 #else
 #include <error.h>
+__attribute__((noreturn))
+extern void error(int,int,const char*, ...);
 #endif
 #include "alloc.h"
 #include <stdlib.h>
@@ -31,12 +33,6 @@
 #include <string.h>
 #include <ctype.h>
 
-
-/* FIXME: You may need to add #include directives, macro definitions,
-   static function definitions, etc.  */
-
-/* FIXME: Define the type 'struct command_stream' here.  This should
-   complete the incomplete type declaration in command.h.  */
 struct command_stream
 {
   command_t *commands;
