@@ -26,6 +26,8 @@ command_t build_if_command(char **startpos, char *endpos);
 command_t build_loop_command(char **startpos, char *endpos, enum command_type cmdtype);
 bool word_at_pos(char *startpos, char *endpos, char *word);
 void add_semicolon(char *startpos, char *endpos);
+bool syntax_error(char *startpos, char *endpos);
+void errorline(char *startpos, char *endpos);
 
 /* Create a command stream from GETBYTE and ARG.  A reader of
    the command stream will invoke GETBYTE (ARG) to get the next byte.

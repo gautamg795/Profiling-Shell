@@ -45,7 +45,7 @@ struct command_stream
   size_t maxsize;
 };
 
-static int linenum = 1;
+static unsigned int linenum = 1;
 
 void
 add_semicolon(char *startpos, char *endpos)
@@ -82,6 +82,7 @@ add_semicolon(char *startpos, char *endpos)
       }
       else if (*c == '\n' && found_command)
       {
+        linenum++;
         *c = ';';
       }
     }
@@ -112,12 +113,43 @@ word_at_pos(char *startpos, char *endpos, char *word)
   return false;
 }
 
+void
+errorline(char *startpos, char *endpos)
+{
+  int lines = 1;
+  for (char *c = startpos; c <= endpos; c++)
+  {
+    if (*c == '\n')
+      lines++;
+    if (*c == (char)178)
+    {
+      linenum = lines;
+      return;
+    }
+  }
+}
+
+bool
+syntax_error(char *startpos, char *endpos)
+{
+
+  for (char *c = startpos; c <= endpos; c++)
+  {
+    if (!isalnum(*c) && !isspace(*c) && !strchr("!%+,-./:@^_;|<>()",*c))
+    {
+      *c = (char)178; // dotted rectangle
+      return true;
+    }
+  }
+  return false;
+}
+
+
 char *
 read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
 {
   size_t buf_size = 1024;
   size_t cur_size = 0;
-  unsigned int local_linenum = 1;
   char *buf = (char *)checked_malloc(buf_size * sizeof(char));
   char *last_nonspace = 0;
   while (true)
@@ -136,12 +168,9 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
     {
       if (last_nonspace && *last_nonspace == ';')
         *last_nonspace = ' ';
-      local_linenum++;
     }
     if (byte == EOF)
       break;
-    if (!isalnum(byte) && !isspace(byte) && !strchr("!%+,-./:@^_;|<>()",byte))
-      error(1, 0, "%u: Syntax error. Unexpected character encountered.", local_linenum);
     if (!isspace(byte))
       last_nonspace = &buf[cur_size];
     buf[cur_size++] = byte;
@@ -149,6 +178,8 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
   if (cur_size > 0 && buf[cur_size-1] != '\n')
     buf[cur_size++] = '\n';
   buf[cur_size] = '\0';
+  if (syntax_error(buf, &buf[cur_size]))
+    errorline(buf, &buf[cur_size]);
   *len = cur_size;
   return buf;
 }
@@ -304,6 +335,7 @@ build_command(char **startpos, char *endpos)
   }
   
   command_t cmd = (command_t)checked_malloc(sizeof(struct command));
+  cmd->syntaxErr = false;
   cmd->status = -1;
   cmd->input = cmd->output = NULL;
   
@@ -494,6 +526,7 @@ build_if_command(char **startpos, char *endpos)
   
   command_t cmd = (command_t)checked_malloc(sizeof(struct command));
   cmd->type = IF_COMMAND;
+  cmd->syntaxErr = false;
   cmd->status = -1;
   cmd->input = cmd->output = NULL;
   memset(cmd->u.command, 0, 3 * sizeof(command_t)); // zero out the command ptrs
@@ -631,6 +664,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
   
   command_t cmd = (command_t)checked_malloc(sizeof(struct command));
   cmd->type = cmdtype; // Can be WHILE or UNTIL
+  cmd->syntaxErr = false;
   cmd->status = -1;
   cmd->input = cmd->output = NULL;
   memset(cmd->u.command, 0, 3 * sizeof(command_t)); // zero out the command ptrs
@@ -742,6 +776,11 @@ read_command_stream (command_stream_t s)
   // No more commands
   if (s->command_idx == s->num_commands) {
     return NULL;
+  }
+  
+  // TODO: FIX LINENUM!!!
+  if (s->commands[s->command_idx]->syntaxErr) {
+    error(1, 0, "%u: Syntax error. Unexpected character encountered.", linenum);
   }
   
   return s->commands[s->command_idx++];
