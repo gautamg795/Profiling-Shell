@@ -472,6 +472,66 @@ build_if_command(char **startpos, char *endpos)
       }
       // TODO: How do we update startpos to note that we are done with this if?
       *startpos = front+3;
+      char *left_redir = 0, *right_redir = 0;
+      char *actual_endsearch;
+      char *endsearch;
+      for (endsearch = *startpos; ; endsearch++)
+      {
+        if (*endsearch == '\0' || *endsearch == ';' || *endsearch == '\n')
+          break;
+        if (*endsearch == '>')
+        {
+          right_redir = endsearch;
+        }
+        if (*endsearch == '<')
+          left_redir = endsearch;
+      }
+      actual_endsearch = endsearch;
+      if (right_redir)
+      {
+        char *original_endsearch = endsearch;
+        endsearch = right_redir;
+        do
+          endsearch--;
+        while (isspace(*endsearch));
+        endsearch++;
+        char *redir_pos = right_redir;
+        do
+          redir_pos++;
+        while (isspace(*redir_pos));
+        cmd->output = (char *)checked_malloc((original_endsearch - redir_pos + 1) * sizeof(char));
+        memcpy(cmd->output, redir_pos, original_endsearch - redir_pos);
+        cmd->output[original_endsearch - redir_pos] = '\0';
+      }
+      if (left_redir)
+      {
+        char *original_endsearch = endsearch;
+        endsearch = left_redir;
+        do
+          endsearch--;
+        while (isspace(*endsearch));
+        endsearch++;
+        do
+          left_redir++;
+        while (isspace(*left_redir));
+        if (right_redir)
+        {
+          cmd->input = (char *)checked_malloc((right_redir - left_redir + 1) * sizeof(char));
+          char *end = right_redir;
+          do
+            end--;
+          while (isspace(*end));
+          memcpy(cmd->input, left_redir, end - left_redir + 1);
+          cmd->input[end - left_redir + 1] = '\0';
+        }
+        else
+        {
+          cmd->input = (char *)checked_malloc((original_endsearch - left_redir + 2) * sizeof(char));
+          memcpy(cmd->input, left_redir, original_endsearch - left_redir);
+          cmd->input[original_endsearch - left_redir] = '\0';
+        }
+      }
+      *startpos = actual_endsearch;
       break;
     }
     
@@ -545,6 +605,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
         if (*endsearch == '<')
           left_redir = endsearch;
       }
+      char *actual_endsearch = endsearch;
       if (right_redir)
       {
         char *original_endsearch = endsearch;
@@ -589,7 +650,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
           cmd->input[original_endsearch - left_redir] = '\0';
         }
       }
-      *startpos = endsearch;
+      *startpos = actual_endsearch;
       break;
     }
     
