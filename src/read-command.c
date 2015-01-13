@@ -82,7 +82,6 @@ add_semicolon(char *startpos, char *endpos)
       }
       else if (*c == '\n' && found_command)
       {
-        linenum++;
         *c = ';';
       }
     }
@@ -132,10 +131,21 @@ errorline(char *startpos, char *endpos)
 bool
 syntax_error(char *startpos, char *endpos)
 {
-
+  int ifnum = 0;
   for (char *c = startpos; c <= endpos; c++)
   {
     if (!isalnum(*c) && !isspace(*c) && !strchr("!%+,-./:@^_;|<>()",*c))
+    {
+      *c = (char)178; // dotted rectangle
+      return true;
+    }
+    
+    if (word_at_pos(c, endpos, "if"))
+      ifnum++;
+    else if (word_at_pos(c, endpos, "fi"))
+      ifnum--;
+    
+    if (ifnum < 0)
     {
       *c = (char)178; // dotted rectangle
       return true;
@@ -258,6 +268,8 @@ make_command_stream (int (*get_next_byte) (void *),
     if (!cmd)
       break;
     stream->commands[stream->num_commands++] = cmd;
+    if (!start)
+      break;
   }
   free(script);
   return stream;
@@ -269,8 +281,6 @@ build_command(char **startpos, char *endpos)
   char *front = *startpos;
   while (isspace(*front))
   {
-    if (*front == '\n')
-      linenum++;
     front++;
   }
   *startpos = front;
@@ -285,6 +295,18 @@ build_command(char **startpos, char *endpos)
   if (!endsearch || endsearch > endpos)
     endsearch = endpos; // FIXME: deal with end of file
   char *original_end = endsearch;
+  
+  char *rect = memchr(front, (char)178, original_end - front);
+  if (rect)
+  {
+    command_t cmd = (command_t)checked_malloc(sizeof(struct command));
+    cmd->syntaxErr = true;
+    cmd->status = -1;
+    cmd->input = cmd->output = NULL;
+    *startpos = NULL;
+    return cmd;
+  }
+  
   // If semicolon is at the end of the command/search space, ignore it! Decrease the search space.
   do
   {
@@ -795,8 +817,8 @@ read_command_stream (command_stream_t s)
   }
   
   // TODO: FIX LINENUM!!!
-  if (s->commands[s->command_idx]->syntaxErr) {
-    error(1, 0, "%u: Syntax error. Unexpected character encountered.", linenum);
+  if (cmd_has_bad_syntax(s->commands[s->command_idx])) {
+    error(1, 0, "%u: Syntax error.", linenum);
   }
   
   return s->commands[s->command_idx++];
