@@ -92,7 +92,7 @@ add_semicolon(char *startpos, char *endpos)
 bool
 word_at_pos(char *startpos, char *endpos, char *word)
 {
-  size_t len = strlen(word);
+  long len = strlen(word);
   if (endpos - startpos < len) {
     return false;
   }
@@ -216,7 +216,7 @@ free_command_stream(command_stream_t stream)
 {
   if (!stream)
     return;
-  for (int i = 0; i < stream->num_commands; i++)
+  for (size_t i = 0; i < stream->num_commands; i++)
     free_command(stream->commands[i]);
   free(stream->commands);
   free(stream);
