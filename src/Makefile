@@ -18,12 +18,8 @@
 
 # Build with 'make WERROR_CFLAGS=' to keep going despite warnings.
 # However, don't rest until it's warning-free!
-OS = $(shell uname)
-ifeq ($(OS),Darwin)
-    CC = gcc-4.9
-else
-    CC = gcc
-endif
+
+CC = gcc
 # WERROR_CFLAGS = -Werror
 CFLAGS = -g -Wall -Wextra -std=gnu11 $(WERROR_CFLAGS)
 LAB = 1
