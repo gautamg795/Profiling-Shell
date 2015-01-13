@@ -300,6 +300,8 @@ build_command(char **startpos, char *endpos)
   if (rect)
   {
     command_t cmd = (command_t)checked_malloc(sizeof(struct command));
+    cmd->type = IF_COMMAND;
+    memset(cmd->u.command, 0, 3 * sizeof(command_t)); // zero out the command ptrs
     cmd->syntaxErr = true;
     cmd->status = -1;
     cmd->input = cmd->output = NULL;
