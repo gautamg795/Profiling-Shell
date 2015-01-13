@@ -50,16 +50,43 @@ static int linenum = 1;
 void
 add_semicolon(char *startpos, char *endpos)
 {
+  bool found_command = false;
+  int internalIf = 0;
+  int internalLoops = 0;
+  int internalSubshells = 0;
+
   for (char *c = startpos; c <= endpos; c++)
   {
-    if (*c == ';')
-      return;
-    if (*c == '\n')
+    if (word_at_pos(c, endpos, "if"))
+      internalIf++;
+    else if (word_at_pos(c, endpos, "while") || word_at_pos(c, endpos, "until"))
+      internalLoops++;
+    else if (word_at_pos(c, endpos, "fi"))
+      internalIf--;
+    else if (word_at_pos(c, endpos, "done"))
+      internalLoops--;
+    else if (*c == '(')
+      internalSubshells++;
+    else if (*c == ')')
+      internalSubshells--;
+    
+    if (internalLoops == 0 && internalIf == 0 && internalSubshells == 0)
     {
-      *c = ';';
-      return;
+      if (!isspace(*c) && *c != ';')
+      {
+        found_command = true;
+      }
+      else if (*c == ';')
+      {
+        found_command = false;
+      }
+      else if (*c == '\n' && found_command)
+      {
+        *c = ';';
+      }
     }
   }
+  return;
 }
 
 bool
@@ -123,17 +150,6 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
     buf[cur_size++] = '\n';
   buf[cur_size] = '\0';
   *len = cur_size;
-  for (char *c = buf; c < buf + cur_size; c++)
-  {
-    if (word_at_pos(c, buf + cur_size, "fi"))
-    {
-      add_semicolon(c, buf + cur_size);
-    }
-    else if (word_at_pos(c, buf + cur_size, "done"))
-    {
-      add_semicolon(c, buf + cur_size);
-    }
-  }
   return buf;
 }
 
@@ -309,6 +325,7 @@ build_command(char **startpos, char *endpos)
   if (left_paren) {
     cmd->type = SUBSHELL_COMMAND;
     *startpos = left_paren+1;
+    add_semicolon(*startpos, right_paren);
     cmd->u.command[0] = build_command(startpos, right_paren);
     *startpos = right_paren + 1;
     return cmd;
@@ -437,17 +454,20 @@ build_if_command(char **startpos, char *endpos)
       {
         // Build_command on everything between THEN and FI
         // store resulting command in u.command[1]
+        add_semicolon(*startpos, front);
         cmd->u.command[1] = build_command(startpos, front);
       }
       else
       {
         // Build_command on everything between THEN and ELSE
         // store resulting command in u.command[1]
+        add_semicolon(*startpos, posOfElse);
         cmd->u.command[1] = build_command(startpos, posOfElse);
         
         // Build_command on everything between ELSE and FI
         // store resulting command in u.command[2]
         *startpos = posOfElse+4; // +4 so that else is not included
+        add_semicolon(*startpos, front);
         cmd->u.command[2] = build_command(startpos, front);
       }
       // TODO: How do we update startpos to note that we are done with this if?
@@ -467,6 +487,7 @@ build_if_command(char **startpos, char *endpos)
     {
       // Build_command on everything before THEN
       // store resulting command in u.command[0]
+      add_semicolon(*startpos, front);
       cmd->u.command[0] = build_command(startpos, front);
       front = *startpos = front+4; // +4 to pass over the then
     }
@@ -507,6 +528,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     {
       // Build_command on everything between DO and DONE
       // store resulting command in u.command[1]
+      add_semicolon(*startpos, front);
       cmd->u.command[1] = build_command(startpos, front);
       
       // TODO: How do we update startpos to note that we are done with this while / until ?
@@ -526,6 +548,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     {
       // Build_command on everything before DO
       // store resulting command in u.command[0]
+      add_semicolon(*startpos, front);
       cmd->u.command[0] = build_command(startpos, front);
       front = *startpos = front+2; // +2 to pass over the do
     }
