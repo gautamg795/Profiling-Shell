@@ -496,6 +496,8 @@ build_command(char **startpos, char *endpos)
 
   char *left_redir = memchr(front, '<', endsearch - front);
   char *right_redir = memchr(front, '>', endsearch - front);
+  if (left_redir && right_redir && right_redir < left_redir)
+    error(1, 0, "Error in redirection");
   char *left_paren = memchr(front, '(', endsearch - front);
   char *right_paren = NULL;
   
@@ -546,7 +548,8 @@ build_command(char **startpos, char *endpos)
   }
   
   // Deal with subshells next
-  if (left_paren) {
+  if (left_paren)
+  {
     cmd->type = SUBSHELL_COMMAND;
     *startpos = left_paren+1;
     add_semicolon(*startpos, right_paren);
@@ -565,6 +568,7 @@ build_command(char **startpos, char *endpos)
       if (*endsearch == '<')
         left_redir = endsearch;
     }
+    
     char *actual_endsearch = endsearch;
     if (right_redir)
     {
