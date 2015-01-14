@@ -134,13 +134,12 @@ bad_next_char(char *startpos, char *endpos)
     startpos++;
   while (isspace(*startpos) && startpos <= endpos);
   
+  // Found a nullbyte, EOF
   if (!*startpos)
-    return NULL;
+    return startpos;
   
   if (strchr(";|<>",*startpos))
-  {
     return startpos;
-  }
   
   return NULL;
 }
@@ -166,7 +165,12 @@ syntax_error(char *startpos, char *endpos)
     if (strchr("\n;|<>(",*c))
     {
       char *bad = bad_next_char(c, endpos);
-      if (bad)
+      if (bad && bad == endpos) // Found EOF
+      {
+        *c = (char)178; // dotted rectangle
+        return true;
+      }
+      else if (bad)
       {
         *bad = (char)178; // dotted rectangle
         return true;
@@ -446,7 +450,6 @@ build_command(char **startpos, char *endpos)
       }
   }
 
-  
   char *left_redir = memchr(front, '<', endsearch - front);
   char *right_redir = memchr(front, '>', endsearch - front);
   char *left_paren = memchr(front, '(', endsearch - front);
