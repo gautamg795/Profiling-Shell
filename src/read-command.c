@@ -171,12 +171,12 @@ syntax_error(char *startpos, char *endpos)
     if (strchr("\n;|<>(",*c))
     {
       char *bad = bad_next_char(c, endpos);
-      if (bad && bad == endpos) // Found EOF
+      if (*c != '\n' && *c != ';' && bad == endpos) // Found EOF
       {
         *c = (char)178; // dotted rectangle
         return true;
       }
-      else if (bad)
+      else if (bad && bad != endpos)
       {
         *bad = (char)178; // dotted rectangle
         return true;
