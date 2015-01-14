@@ -150,9 +150,15 @@ syntax_error(char *startpos, char *endpos)
   int ifnum = 0;
   int parnum = 0;
   int loopnum =0;
+  int donum = 0;
+  int thennum = 0;
+  int elsenum = 0;
   char *last_open_paren = NULL;
   char *last_if = NULL;
   char *last_loop = NULL;
+  char *last_do = NULL;
+  char *last_then = NULL;
+  char *last_else = NULL;
   
   for (char *c = startpos; c <= endpos; c++)
   {
@@ -183,23 +189,46 @@ syntax_error(char *startpos, char *endpos)
       parnum++;
     }
     else if (*c ==')')
+    {
       parnum--;
+    }
+    else if (word_at_pos(c, endpos, "do"))
+    {
+      last_do = c;
+      donum++;
+    }
+    else if (word_at_pos(c, endpos, "then"))
+    {
+      last_then = c;
+      thennum++;
+    }
+    else if (word_at_pos(c, endpos, "else"))
+    {
+      last_else = c;
+      elsenum++;
+    }
     else if (word_at_pos(c, endpos, "while") || word_at_pos(c, endpos, "until"))
     {
       last_loop = c;
       loopnum++;
     }
     else if (word_at_pos(c, endpos, "done"))
+    {
+      donum--;
       loopnum--;
+    }
     else if (word_at_pos(c, endpos, "if"))
     {
       last_if = c;
       ifnum++;
     }
     else if (word_at_pos(c, endpos, "fi"))
+    {
+      elsenum--; // Could be negative
+      thennum--;
       ifnum--;
-    
-    if (ifnum < 0 || parnum < 0 || loopnum < 0)
+    }
+    if (ifnum < 0 || parnum < 0 || loopnum < 0 || donum < 0 || thennum < 0)
     {
       *c = (char)178; // dotted rectangle
       return true;
@@ -219,6 +248,21 @@ syntax_error(char *startpos, char *endpos)
   else if (loopnum)
   {
     *last_loop = (char)178; // dotted rectangle
+    return true;
+  }
+  else if (donum)
+  {
+    *last_do = (char)178; // dotted rectangle
+    return true;
+  }
+  else if (thennum)
+  {
+    *last_then = (char)178; // dotted rectangle
+    return true;
+  }
+  else if (elsenum > 0)
+  {
+    *last_else = (char)178; // dotted rectangle
     return true;
   }
   
