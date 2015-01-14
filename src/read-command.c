@@ -33,6 +33,8 @@ extern void error(int,int,const char*, ...);
 #include <string.h>
 #include <ctype.h>
 
+static const char rekd = (char)178;
+
 struct command_stream
 {
   command_t *commands;
@@ -116,7 +118,7 @@ errorline(char *startpos, char *endpos)
   {
     if (*c == '\n')
       lines++;
-    if (*c == (char)178)
+    if (*c == rekd)
     {
       linenum = lines;
       return;
@@ -164,7 +166,7 @@ syntax_error(char *startpos, char *endpos)
   {
     if (!isalnum(*c) && !isspace(*c) && !strchr("!%+,-./:@^_;|<>()",*c))
     {
-      *c = (char)178; // dotted rectangle
+      *c = rekd; // dotted rectangle
       return true;
     }
     
@@ -173,12 +175,12 @@ syntax_error(char *startpos, char *endpos)
       char *bad = bad_next_char(c, endpos);
       if (*c != '\n' && *c != ';' && bad == endpos) // Found EOF
       {
-        *c = (char)178; // dotted rectangle
+        *c = rekd; // dotted rectangle
         return true;
       }
       else if (bad && bad != endpos)
       {
-        *bad = (char)178; // dotted rectangle
+        *bad = rekd; // dotted rectangle
         return true;
       }
     }
@@ -230,39 +232,39 @@ syntax_error(char *startpos, char *endpos)
     }
     if (ifnum < 0 || parnum < 0 || loopnum < 0 || donum < 0 || thennum < 0)
     {
-      *c = (char)178; // dotted rectangle
+      *c = rekd; // dotted rectangle
       return true;
     }
   }
   
   if (parnum)
   {
-    *last_open_paren = (char)178; // dotted rectangle
+    *last_open_paren = rekd; // dotted rectangle
     return true;
   }
   else if (ifnum)
   {
-    *last_if = (char)178; // dotted rectangle
+    *last_if = rekd; // dotted rectangle
     return true;
   }
   else if (loopnum)
   {
-    *last_loop = (char)178; // dotted rectangle
+    *last_loop = rekd; // dotted rectangle
     return true;
   }
   else if (donum)
   {
-    *last_do = (char)178; // dotted rectangle
+    *last_do = rekd; // dotted rectangle
     return true;
   }
   else if (thennum)
   {
-    *last_then = (char)178; // dotted rectangle
+    *last_then = rekd; // dotted rectangle
     return true;
   }
   else if (elsenum > 0)
   {
-    *last_else = (char)178; // dotted rectangle
+    *last_else = rekd; // dotted rectangle
     return true;
   }
   
@@ -415,7 +417,7 @@ build_command(char **startpos, char *endpos)
     endsearch = endpos; // FIXME: deal with end of file
   char *original_end = endsearch;
   
-  char *rect = memchr(front, (char)178, original_end - front);
+  char *rect = memchr(front, rekd, original_end - front);
   if (rect)
   {
     command_t cmd = (command_t)checked_malloc(sizeof(struct command));
@@ -766,7 +768,7 @@ build_if_command(char **startpos, char *endpos)
           left_redir = endsearch;
       }
       actual_endsearch = endsearch;
-      char *rect = memchr(front, (char)178, actual_endsearch - front);
+      char *rect = memchr(front, rekd, actual_endsearch - front);
       if (rect)
       {
         cmd->syntaxErr = true;
