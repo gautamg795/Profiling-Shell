@@ -422,7 +422,31 @@ build_command(char **startpos, char *endpos)
         break;
       }
   }
-  char *pipe = memchr(front, '|', endsearch - front);
+  char *pipe = NULL;
+  internalIf = internalLoops = internalSubshells = 0;
+  for (char *c = front; c != endsearch; c++)
+  {
+    if (word_at_pos(c, endsearch, "if"))
+      internalIf++;
+    else if (word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until"))
+      internalLoops++;
+    else if (word_at_pos(c, endsearch, "fi"))
+      internalIf--;
+    else if (word_at_pos(c, endsearch, "done"))
+      internalLoops--;
+    else if (*c == '(')
+      internalSubshells++;
+    else if (*c == ')')
+      internalSubshells--;
+    else if (*c == '|')
+      if (internalLoops == 0 && internalIf == 0 && internalSubshells == 0)
+      {
+        pipe = c;
+        break;
+      }
+  }
+
+  
   char *left_redir = memchr(front, '<', endsearch - front);
   char *right_redir = memchr(front, '>', endsearch - front);
   char *left_paren = memchr(front, '(', endsearch - front);
@@ -460,6 +484,16 @@ build_command(char **startpos, char *endpos)
     cmd->type = SEQUENCE_COMMAND;
     cmd->u.command[0] = build_command(startpos, semicolon);
     *startpos = semicolon+1; // +1 to get rid of semicolon?
+    cmd->u.command[1] = build_command(startpos, endsearch);
+    return cmd;
+  }
+  
+  // Deal with pipe afterwards
+  if (pipe)
+  {
+    cmd->type = PIPE_COMMAND;
+    cmd->u.command[0] = build_command(startpos, pipe);
+    *startpos = pipe+1; // +1 to get rid of pipe?
     cmd->u.command[1] = build_command(startpos, endsearch);
     return cmd;
   }
@@ -555,15 +589,6 @@ build_command(char **startpos, char *endpos)
     return cmd;
   }
   
-  // Deal with pipe afterwards
-  if (pipe)
-  {
-    cmd->type = PIPE_COMMAND;
-    cmd->u.command[0] = build_command(startpos, pipe);
-    *startpos = pipe+1; // +1 to get rid of pipe?
-    cmd->u.command[1] = build_command(startpos, endsearch);
-    return cmd;
-  }
   
   // It must be a simple command
   if (!semicolon && !pipe && !left_paren)
