@@ -30,3 +30,7 @@
 profsh
 *.swp
 .nfs*
+
+# Generated files
+*.tmp
+*.tar.gz
