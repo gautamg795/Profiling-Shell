@@ -232,8 +232,7 @@ syntax_error(char *startpos, char *endpos)
     }
     if (ifnum < 0 || parnum < 0 || loopnum < 0 || donum < 0 || thennum < 0)
     {
-      *c = rekd; // dotted rectangle
-      return true;
+      error(1, 0, "Syntax error.");
     }
   }
   
@@ -722,6 +721,7 @@ command_t
 build_if_command(char **startpos, char *endpos)
 {
   int numInteriorIfs = 0;
+  bool foundThen = false;
   char *posOfElse = NULL;
   
   char *front = *startpos;
@@ -844,16 +844,19 @@ build_if_command(char **startpos, char *endpos)
     {
       numInteriorIfs--;
     }
-    else if (word_at_pos(front, endpos, "then") && numInteriorIfs == 0)
+    else if (numInteriorIfs == 0 && word_at_pos(front, endpos, "then"))
     {
+      foundThen = true;
       // Build_command on everything before THEN
       // store resulting command in u.command[0]
       add_semicolon(*startpos, front);
       cmd->u.command[0] = build_command(startpos, front);
       front = *startpos = front+4; // +4 to pass over the then
     }
-    else if (word_at_pos(front, endpos, "else") && numInteriorIfs == 0)
+    else if (numInteriorIfs == 0 && word_at_pos(front, endpos, "else") )
     {
+      if (!foundThen)
+        error(1, 0, "Error in if statement.");
       posOfElse = front;
       front = front+4; // pass over the else but don't update startpos
     }
