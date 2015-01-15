@@ -545,19 +545,92 @@ build_command(char **startpos, char *endpos)
         break;
       }
   }
+  
+  char *left_redir = NULL;
+  internalIf = internalLoops = internalSubshells = 0;
+  for (char *c = front; c != endsearch; c++)
+  {
+    if (word_at_pos(c, endsearch, "if"))
+      internalIf++;
+    else if (word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until"))
+      internalLoops++;
+    else if (word_at_pos(c, endsearch, "fi"))
+      internalIf--;
+    else if (word_at_pos(c, endsearch, "done"))
+      internalLoops--;
+    else if (*c == '(')
+      internalSubshells++;
+    else if (*c == ')')
+      internalSubshells--;
+    else if (*c == '<')
+      if (internalLoops == 0 && internalIf == 0 && internalSubshells == 0)
+      {
+        left_redir = c;
+        break;
+      }
+  }
 
-  char *left_redir = memchr(front, '<', endsearch - front);
-  char *right_redir = memchr(front, '>', endsearch - front);
+  internalIf = internalLoops = internalSubshells = 0;
+  char *right_redir = NULL;
+  for (char *c = front; c != endsearch; c++)
+  {
+    if (word_at_pos(c, endsearch, "if"))
+      internalIf++;
+    else if (word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until"))
+      internalLoops++;
+    else if (word_at_pos(c, endsearch, "fi"))
+      internalIf--;
+    else if (word_at_pos(c, endsearch, "done"))
+      internalLoops--;
+    else if (*c == '(')
+      internalSubshells++;
+    else if (*c == ')')
+      internalSubshells--;
+    else if (*c == '>')
+      if (internalLoops == 0 && internalIf == 0 && internalSubshells == 0)
+      {
+        right_redir = c;
+        break;
+      }
+  }
+  
   if (left_redir && right_redir && right_redir < left_redir)
     error(1, 0, "Syntax error: redirect operators in wrong order");
-  char *left_paren = memchr(front, '(', endsearch - front);
-  char *right_paren = NULL;
   
-  internalSubshells = 0;
+  internalIf = internalLoops = internalSubshells = 0;
+  char *left_paren = NULL;
+  for (char *c = front; c != endsearch; c++)
+  {
+    if (word_at_pos(c, endsearch, "if"))
+      internalIf++;
+    else if (word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until"))
+      internalLoops++;
+    else if (word_at_pos(c, endsearch, "fi"))
+      internalIf--;
+    else if (word_at_pos(c, endsearch, "done"))
+      internalLoops--;
+    else if (*c == '(')
+      if (internalLoops == 0 && internalIf == 0)
+      {
+        left_paren = c;
+        break;
+      }
+  }
+  
+  char *right_paren = NULL;
+  internalIf = internalLoops = internalSubshells = 0;
   if (left_paren) {
     for (char *c = left_paren; c != endpos; c++)
     {
-      if (*c == '(')
+      if (word_at_pos(c, endsearch, "if"))
+        internalIf++;
+      else if (word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until"))
+        internalLoops++;
+      else if (word_at_pos(c, endsearch, "fi"))
+        internalIf--;
+      else if (word_at_pos(c, endsearch, "done"))
+        internalLoops--;
+      else if (*c == '(')
         internalSubshells++;
       else if (*c == ')')
         internalSubshells--;
