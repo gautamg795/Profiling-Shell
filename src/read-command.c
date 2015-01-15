@@ -126,6 +126,38 @@ errorline(char *startpos, char *endpos)
   }
 }
 
+void
+check_after_struct(char *startpos, char *endpos)
+{
+  if (startpos >= endpos)
+    error(1, 0, "Syntax error.");
+    do
+    {
+      if (strchr("\n;<>|",*startpos))
+        return;
+      else if (!isspace(*startpos))
+        error(1, 0, "Syntax error.");
+      startpos++;
+    }
+  while (startpos < endpos);
+  return;
+}
+
+void
+check_good_char(char *startpos, char *endpos)
+{
+  if (startpos >= endpos)
+     error(1, 0, "Syntax error.");
+  do
+  {
+    if (isalnum(*startpos) || strchr("!%+,-./:@^_",*startpos))
+      return;
+    startpos++;
+  }
+  while (startpos < endpos);
+  error(1, 0, "Syntax error.");
+}
+
 char *
 bad_next_char(char *startpos, char *endpos)
 {
@@ -216,6 +248,7 @@ syntax_error(char *startpos, char *endpos)
     }
     else if (word_at_pos(c, endpos, "done"))
     {
+      check_after_struct(c+4, endpos);
       donum--;
       loopnum--;
     }
@@ -226,6 +259,7 @@ syntax_error(char *startpos, char *endpos)
     }
     else if (word_at_pos(c, endpos, "fi"))
     {
+      check_after_struct(c+2, endpos);
       elsenum--; // Could be negative
       thennum--;
       ifnum--;
@@ -305,7 +339,11 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
     if (byte == '#')
     {
       while ((byte = get_next_byte(arg)) != '\n')
+      {
+        if (byte == EOF)
+          break;
         continue;
+      }
     }
     if (byte == EOF)
       break;
@@ -764,6 +802,7 @@ build_if_command(char **startpos, char *endpos)
       // No else statement
       if (posOfElse == NULL)
       {
+        check_good_char(*startpos, front);
         // Build_command on everything between THEN and FI
         // store resulting command in u.command[1]
         add_semicolon(*startpos, front);
@@ -771,6 +810,7 @@ build_if_command(char **startpos, char *endpos)
       }
       else
       {
+        check_good_char(*startpos, posOfElse);
         // Build_command on everything between THEN and ELSE
         // store resulting command in u.command[1]
         add_semicolon(*startpos, posOfElse);
@@ -779,6 +819,7 @@ build_if_command(char **startpos, char *endpos)
         // Build_command on everything between ELSE and FI
         // store resulting command in u.command[2]
         *startpos = posOfElse+4; // +4 so that else is not included
+        check_good_char(*startpos, front);
         add_semicolon(*startpos, front);
         cmd->u.command[2] = build_command(startpos, front);
       }
@@ -873,6 +914,7 @@ build_if_command(char **startpos, char *endpos)
     else if (numInteriorIfs == 0 && word_at_pos(front, endpos, "then"))
     {
       foundThen = true;
+      check_good_char(*startpos, front);
       // Build_command on everything before THEN
       // store resulting command in u.command[0]
       add_semicolon(*startpos, front);
@@ -917,6 +959,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     // We're done!
     if (word_at_pos(front, endpos, "done") && numInteriorLoops == 0)
     {
+      check_good_char(*startpos, front);
       // Build_command on everything between DO and DONE
       // store resulting command in u.command[1]
       add_semicolon(*startpos, front);
@@ -1014,6 +1057,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     }
     else if (word_at_pos(front, endpos, "do") && numInteriorLoops == 0)
     {
+      check_good_char(*startpos, front);
       // Build_command on everything before DO
       // store resulting command in u.command[0]
       add_semicolon(*startpos, front);

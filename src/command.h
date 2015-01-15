@@ -30,6 +30,8 @@ bool syntax_error(char *startpos, char *endpos);
 void errorline(char *startpos, char *endpos);
 bool cmd_has_bad_syntax(command_t cmd);
 char *bad_next_char(char *startpos, char *endpos);
+void check_good_char(char *startpos, char *endpos);
+void check_after_struct(char *startpos, char *endpos);
 
 /* Create a command stream from GETBYTE and ARG.  A reader of
    the command stream will invoke GETBYTE (ARG) to get the next byte.
