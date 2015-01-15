@@ -1,13 +1,34 @@
-Dylan Flanders #504274041 
-\n Gautam Gupta #304282688
+# Lab 1. Profiling shell
+####Dylan Flanders (#504274041) and Gautam Gupta (#304282688)
+###### CS111 Section 1A, Winter 2015
+* * * 
 
-CS111 - Lab 1a
+## Known Issues
 
 If our program finds a syntax error in the input file, it may continue outputting standard format for all commands found before the syntax error and then note the line number of the syntax error and exit the program. However, since this was later deemed unnecessary, other syntax errors may terminate the program immediately with just an error message. We have no additional features that we would like to call to your attention. 
 
+## Project Status
+Part 1a: Complete  
+Part 1b: Incomplete  
+Part 1c: Incomplete  
+    
+## Compilation
+Download and untar the source files, then run `make` in the `src/` directory to generate the `profsh` executable. At this time, it can only be run as `profsh -t <sourcefile.sh>` which will print the command tree structure associated with the input.   
+Run `make check` to run the shell against the two test scripts, `test-t-ok.sh` and `test-t-bad.sh`.  
+Run `make debug` (only on the SEASnet servers) to compile with AddressSanitizer and UndefinedBehaviorSanitizer.  
+  
+Compilation warnings regarding unused parameters can be safely ignored, as they are regarding the incomplete portions of this lab.
+
+   
+
+     
+    
+#Project Specification
+------
+
 [Source](http://cs.ucla.edu/classes/winter15/cs111/assign/lab1.html "Permalink to Lab 1. Profiling shell")
 
-# Lab 1. Profiling shell
+
 
 ## Introduction
 
