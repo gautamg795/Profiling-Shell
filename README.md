@@ -1,9 +1,9 @@
-Dylan Flanders #504274041
-Gautam Gupta #304282688
+Dylan Flanders #504274041 
+\n Gautam Gupta #304282688
 
 CS111 - Lab 1a
 
-If our program finds a syntax error in the input file, it may continue outputting standard format for all commands found before the syntax error and then note the line number of the syntax error and exit the program. However, since this was later deemed unnecessary, other syntax errors may terminate the program immediately with just an error message. We have no additional features that we would like to call your attention to. 
+If our program finds a syntax error in the input file, it may continue outputting standard format for all commands found before the syntax error and then note the line number of the syntax error and exit the program. However, since this was later deemed unnecessary, other syntax errors may terminate the program immediately with just an error message. We have no additional features that we would like to call to your attention. 
 
 [Source](http://cs.ucla.edu/classes/winter15/cs111/assign/lab1.html "Permalink to Lab 1. Profiling shell")
 
