@@ -804,6 +804,8 @@ build_if_command(char **startpos, char *endpos)
         *startpos = NULL;
         return cmd;
       }
+      if (left_redir && right_redir && right_redir < left_redir)
+        error(1, 0, "Syntax error: redirect operators in wrong order");
       if (right_redir)
       {
         char *original_endsearch = endsearch;
@@ -933,8 +935,13 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
           left_redir = endsearch;
       }
       char *actual_endsearch = endsearch;
+      if (left_redir && right_redir && right_redir < left_redir)
+        error(1, 0, "Syntax error: redirect operators in wrong order");
       if (right_redir)
       {
+        for (char *c = right_redir; c <= actual_endsearch; c++)
+          if (*c == rekd)
+            error(1, 0, "Syntax error: bad redirect");
         char *original_endsearch = endsearch;
         endsearch = right_redir;
         do
@@ -953,6 +960,9 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
       }
       if (left_redir)
       {
+        for (char *c = left_redir; c <= endsearch; c++)
+          if (*c == rekd)
+            error(1, 0, "Syntax error: bad redirect");
         char *original_endsearch = endsearch;
         endsearch = left_redir;
         do
@@ -964,6 +974,9 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
         while (isspace(*left_redir));
         if (right_redir)
         {
+          for (char *c = left_redir; c <= right_redir; c++)
+            if (*c == rekd)
+              error(1, 0, "Syntax error: bad redirect");
           if (right_redir - left_redir < 0)
             error(1, 0, "Syntax error: bad redirect");
           cmd->input = (char *)checked_malloc((right_redir - left_redir + 1) * sizeof(char));
@@ -974,7 +987,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
           if (end - left_redir + 1 < 0)
             error(1, 0, "Syntax error: bad redirect");
           memcpy(cmd->input, left_redir, end - left_redir + 1);
-          cmd->input[end - left_redir] = '\0';
+          cmd->input[end - left_redir + 1] = '\0';
         }
         else
         {
