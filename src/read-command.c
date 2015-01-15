@@ -564,6 +564,8 @@ build_command(char **startpos, char *endpos)
   // Deal with subshells next
   if (left_paren)
   {
+    if (right_paren - left_paren < 2)
+      error(1, 0, "Syntax error: adjacent parentheses");
     cmd->type = SUBSHELL_COMMAND;
     *startpos = left_paren+1;
     add_semicolon(*startpos, right_paren);
