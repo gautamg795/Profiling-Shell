@@ -511,7 +511,7 @@ build_command(char **startpos, char *endpos)
   char *left_redir = memchr(front, '<', endsearch - front);
   char *right_redir = memchr(front, '>', endsearch - front);
   if (left_redir && right_redir && right_redir < left_redir)
-    error(1, 0, "Error in redirection");
+    error(1, 0, "Syntax error: redirect operators in wrong order");
   char *left_paren = memchr(front, '(', endsearch - front);
   char *right_paren = NULL;
   
@@ -596,6 +596,8 @@ build_command(char **startpos, char *endpos)
       do
         redir_pos++;
       while (isspace(*redir_pos));
+      if (original_endsearch - redir_pos < 0)
+        error(1, 0, "Syntax error: bad redirect");
       cmd->output = (char *)checked_malloc((original_endsearch - redir_pos + 1) * sizeof(char));
       memcpy(cmd->output, redir_pos, original_endsearch - redir_pos);
       cmd->output[original_endsearch - redir_pos] = '\0';
@@ -613,16 +615,22 @@ build_command(char **startpos, char *endpos)
       while (isspace(*left_redir));
       if (right_redir)
       {
+        if (right_redir - left_redir < 0)
+          error(1, 0, "Syntax error: bad redirect");
         cmd->input = (char *)checked_malloc((right_redir - left_redir + 1) * sizeof(char));
         char *end = right_redir;
         do
           end--;
         while (isspace(*end));
+        if (end - left_redir + 1 < 0)
+          error(1, 0, "Syntax error: bad redirect");
         memcpy(cmd->input, left_redir, end - left_redir + 1);
         cmd->input[end - left_redir] = '\0';
       }
       else
       {
+        if (original_endsearch - left_redir < 0)
+          error(1, 0, "Syntax error: bad redirect");
         cmd->input = (char *)checked_malloc((original_endsearch - left_redir + 2) * sizeof(char));
         memcpy(cmd->input, left_redir, original_endsearch - left_redir);
         cmd->input[original_endsearch - left_redir] = '\0';
@@ -670,6 +678,8 @@ build_command(char **startpos, char *endpos)
       do
         redir_pos++;
       while (isspace(*redir_pos));
+      if (original_endsearch - redir_pos < 0)
+        error(1, 0, "Syntax error: bad redirect");
       cmd->output = (char *)checked_malloc((original_endsearch - redir_pos + 1) * sizeof(char));
       memcpy(cmd->output, redir_pos, original_endsearch - redir_pos);
       cmd->output[original_endsearch - redir_pos] = '\0';
@@ -687,16 +697,22 @@ build_command(char **startpos, char *endpos)
       while (isspace(*left_redir));
       if (right_redir)
       {
+        if (right_redir - left_redir < 0)
+          error(1, 0, "Syntax error: bad redirect");
         cmd->input = (char *)checked_malloc((right_redir - left_redir + 1) * sizeof(char));
         char *end = right_redir;
         do
           end--;
         while (isspace(*end));
+        if (end - left_redir + 1 < 0)
+          error(1, 0, "Syntax error: bad redirect");
         memcpy(cmd->input, left_redir, end - left_redir + 1);
         cmd->input[end - left_redir + 1] = '\0';
       }
       else // no right_redir
       {
+        if (original_endsearch - left_redir < 0)
+          error(1, 0, "Syntax error: bad redirect");
         cmd->input = (char *)checked_malloc((original_endsearch - left_redir + 2) * sizeof(char));
         memcpy(cmd->input, left_redir, original_endsearch - left_redir);
         cmd->input[original_endsearch - left_redir] = '\0';
@@ -800,6 +816,8 @@ build_if_command(char **startpos, char *endpos)
         do
           redir_pos++;
         while (isspace(*redir_pos));
+        if (original_endsearch - redir_pos < 0)
+          error(1, 0, "Syntax error: bad redirect");
         cmd->output = (char *)checked_malloc((original_endsearch - redir_pos + 1) * sizeof(char));
         memcpy(cmd->output, redir_pos, original_endsearch - redir_pos);
         cmd->output[original_endsearch - redir_pos] = '\0';
@@ -817,6 +835,8 @@ build_if_command(char **startpos, char *endpos)
         while (isspace(*left_redir));
         if (right_redir)
         {
+          if (right_redir - left_redir < 0)
+            error(1, 0, "Syntax error: bad redirect");
           cmd->input = (char *)checked_malloc((right_redir - left_redir + 1) * sizeof(char));
           char *end = right_redir;
           do
@@ -827,6 +847,8 @@ build_if_command(char **startpos, char *endpos)
         }
         else
         {
+          if (original_endsearch - left_redir < 0)
+            error(1, 0, "Syntax error: bad redirect");
           cmd->input = (char *)checked_malloc((original_endsearch - left_redir + 2) * sizeof(char));
           memcpy(cmd->input, left_redir, original_endsearch - left_redir);
           cmd->input[original_endsearch - left_redir] = '\0';
@@ -923,6 +945,8 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
         do
           redir_pos++;
         while (isspace(*redir_pos));
+        if (original_endsearch - redir_pos < 0)
+          error(1, 0, "Syntax error: bad redirect");
         cmd->output = (char *)checked_malloc((original_endsearch - redir_pos + 1) * sizeof(char));
         memcpy(cmd->output, redir_pos, original_endsearch - redir_pos);
         cmd->output[original_endsearch - redir_pos] = '\0';
@@ -940,16 +964,22 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
         while (isspace(*left_redir));
         if (right_redir)
         {
+          if (right_redir - left_redir < 0)
+            error(1, 0, "Syntax error: bad redirect");
           cmd->input = (char *)checked_malloc((right_redir - left_redir + 1) * sizeof(char));
           char *end = right_redir;
           do
             end--;
           while (isspace(*end));
+          if (end - left_redir + 1 < 0)
+            error(1, 0, "Syntax error: bad redirect");
           memcpy(cmd->input, left_redir, end - left_redir + 1);
           cmd->input[end - left_redir] = '\0';
         }
         else
         {
+          if (original_endsearch - left_redir < 0)
+            error(1, 0, "Syntax error: bad redirect");
           cmd->input = (char *)checked_malloc((original_endsearch - left_redir + 2) * sizeof(char));
           memcpy(cmd->input, left_redir, original_endsearch - left_redir);
           cmd->input[original_endsearch - left_redir] = '\0';
