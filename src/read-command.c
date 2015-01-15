@@ -328,6 +328,19 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
         *last_nonspace = ' ';
     }
   }
+  for (char *c = buf; c < buf + cur_size; c++)
+  {
+    if (*c == '|')
+    {
+      char *newline = strchr(c, '\n');
+      do
+        c++;
+      while (isspace(*c)  && c != buf + cur_size);
+      if (newline < c)
+        *newline = ' ';
+    }
+    
+  }
   return buf;
 }
 
