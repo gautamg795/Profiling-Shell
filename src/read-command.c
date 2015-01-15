@@ -658,7 +658,7 @@ build_command(char **startpos, char *endpos)
     cmd->type = SEQUENCE_COMMAND;
     cmd->u.command[0] = build_command(startpos, semicolon);
     *startpos = semicolon+1; // +1 to get rid of semicolon?
-    cmd->u.command[1] = build_command(startpos, endsearch);
+    cmd->u.command[1] = build_command(startpos, endpos);
     return cmd;
   }
   
@@ -668,7 +668,7 @@ build_command(char **startpos, char *endpos)
     cmd->type = PIPE_COMMAND;
     cmd->u.command[0] = build_command(startpos, pipe);
     *startpos = pipe+1; // +1 to get rid of pipe?
-    cmd->u.command[1] = build_command(startpos, endsearch);
+    cmd->u.command[1] = build_command(startpos, endpos);
     return cmd;
   }
   
