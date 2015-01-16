@@ -402,7 +402,9 @@ free_command(command_t cmd)
     free(cmd->output);
   if (cmd->type == SIMPLE_COMMAND)
   {
-    free(cmd->u.word[0]);
+    char** curWord = cmd->u.word;
+    while (*(curWord++) != NULL)
+      free(*curWord);
     free(cmd->u.word);
   }
   else
