@@ -846,7 +846,8 @@ build_command(char **startpos, char *endpos)
         maxWords *= 2;
         cmdstr = (char **)checked_realloc(cmdstr, maxWords * sizeof(char *));
       }
-      cmdstr[numWords++] = tok;
+      cmdstr[numWords] = (char *)checked_malloc((strlen(tok) + 1) * sizeof(char));
+      strcpy(cmdstr[numWords++], tok);
       tok = strtok(NULL, " ");
     }
     cmdstr[numWords] = NULL;
