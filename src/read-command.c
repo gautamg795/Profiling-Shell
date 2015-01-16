@@ -853,6 +853,7 @@ build_command(char **startpos, char *endpos)
       strcpy(cmdstr[numWords++], tok);
       tok = strtok(NULL, " ");
     }
+    free(untokenized);
     cmdstr[numWords] = NULL;
     cmd->type = SIMPLE_COMMAND;
     cmd->u.word = cmdstr;
