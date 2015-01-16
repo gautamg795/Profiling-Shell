@@ -837,6 +837,7 @@ build_command(char **startpos, char *endpos)
       error(1, 0, "We tried to create a simple command with < 1 character");
     char *untokenized = (char *)checked_malloc((endsearch - front + 1) * sizeof(char));
     strncpy(untokenized, front, endsearch - front);
+    untokenized[endsearch-front] = '\0';
     size_t maxWords = 8;
     size_t numWords = 0;
     char **cmdstr = (char**)checked_malloc(maxWords * sizeof(char*));
