@@ -831,12 +831,25 @@ build_command(char **startpos, char *endpos)
         cmd->input[original_endsearch - left_redir] = '\0';
       }
     }
-    
-    char **cmdstr = (char**)checked_malloc(2 * sizeof(char*));
-    cmdstr[1] = 0;
-    *cmdstr = (char*)checked_malloc((endsearch - front + 1) * sizeof(char));
-    strncpy(*cmdstr, front, endsearch - front);
-    cmdstr[0][endsearch-front] = 0; // add the null byte
+    if (endsearch - front <= 0)
+      error(1, 0, "We tried to create a simple command with < 1 character");
+    char *untokenized = (char *)checked_malloc((endsearch - front + 1) * sizeof(char));
+    strncpy(untokenized, front, endsearch - front);
+    size_t maxWords = 8;
+    size_t numWords = 0;
+    char **cmdstr = (char**)checked_malloc(maxWords * sizeof(char*));
+    char *tok = strtok(untokenized, " ");
+    while (tok != NULL)
+    {
+      if (numWords == maxWords - 1)
+      {
+        maxWords *= 2;
+        cmdstr = (char **)checked_realloc(cmdstr, maxWords * sizeof(char *));
+      }
+      cmdstr[numWords++] = tok;
+      tok = strtok(NULL, " ");
+    }
+    cmdstr[numWords] = NULL;
     cmd->type = SIMPLE_COMMAND;
     cmd->u.word = cmdstr;
     *startpos = original_end;
