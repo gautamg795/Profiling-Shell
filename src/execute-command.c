@@ -63,7 +63,7 @@ execute_command (command_t c, int profiling)
     case IF_COMMAND:
     {
       execute_command(c->u.command[0], profiling);
-      if (! c->u.command[0]->status)
+      if (! c->u.command[0]->status) // if command returned 0
       {
         execute_command(c->u.command[1], profiling);
         c->status = c->u.command[1]->status;
@@ -76,9 +76,40 @@ execute_command (command_t c, int profiling)
       break;
     }
     case WHILE_COMMAND:
+    {
+      while (true)
+      {
+        execute_command(c->u.command[0], profiling);
+        if (! c->u.command[0]->status) // if command returned 0
+        {
+          execute_command(c->u.command[1], profiling);
+          c->status = c->u.command[1]->status;
+        }
+        else break;
+      }
+      break;
+    }
     case UNTIL_COMMAND:
+    {
+      while (true)
+      {
+        execute_command(c->u.command[0], profiling);
+        if (c->u.command[0]->status) // if command returned nonzero
+        {
+          execute_command(c->u.command[1], profiling);
+          c->status = c->u.command[1]->status;
+        }
+        else break;
+      }
+      break;
+    }
     case PIPE_COMMAND:
     case SEQUENCE_COMMAND:
+    {
+      execute_command(c->u.command[0], profiling);
+      execute_command(c->u.command[1], profiling);
+      c->status = c->u.command[1]->status;
+    }
     case SIMPLE_COMMAND:
     {
       p = fork();
