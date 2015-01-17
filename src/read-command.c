@@ -1,4 +1,4 @@
-// UCLA CS 111 Lab 1 command reading
+ // UCLA CS 111 Lab 1 command reading
 
 // Copyright 2012-2014 Paul Eggert.
 
