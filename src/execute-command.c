@@ -28,6 +28,7 @@
 #include <sys/wait.h>
 #include "alloc.h"
 #include <string.h>
+#include <stdio.h>
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
 
@@ -56,7 +57,7 @@ execute_command (command_t c, int profiling)
     error(1, 0, "We tried ot execute a NULL command");
   }
   pid_t p;
-  int status;
+  int status = 0;
   switch(c->type)
   {
     case IF_COMMAND:
@@ -72,18 +73,17 @@ execute_command (command_t c, int profiling)
         int word_count = 0;
         for (;c->u.word[word_count] != NULL; word_count++)
           ;
-        char **args = checked_malloc((word_count + 1) * sizeof(char*));
-        args[0] = c->u.word[0];
-        memcpy(&args[1], c->u.word, word_count * sizeof(char *));
-        execvp(args[0], args);
+        char **args = checked_malloc((word_count + 2) * sizeof(char*));
+        memcpy(args, c->u.word, word_count * sizeof(char *));
+        args[word_count] = 0;
+        execvp(*args, args);
       }
       else
       {
         waitpid(p, &status, 0);
-        if (WIFEXITED(status))
-          c->status = WEXITSTATUS(status);
-        else
-          error(1, 0, "Child process did not exit");
+        c->status = WEXITSTATUS(status);
+        fprintf(stderr, "child exited with status %d\n", c->status);
+        
       }
     }
     case SUBSHELL_COMMAND:
