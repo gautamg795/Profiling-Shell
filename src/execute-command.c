@@ -29,6 +29,7 @@
 #include "alloc.h"
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
 
@@ -51,7 +52,6 @@ command_status (command_t c)
 void
 execute_command (command_t c, int profiling)
 {
-  (void)profiling; // We're not doing anything with this flag yet.
   if(!c)
   {
     error(1, 0, "We tried ot execute a NULL command");
@@ -76,15 +76,15 @@ execute_command (command_t c, int profiling)
         char **args = checked_malloc((word_count + 2) * sizeof(char*));
         memcpy(args, c->u.word, word_count * sizeof(char *));
         args[word_count] = 0;
-        execvp(*args, args);
+        if(execvp(*args, args))
+          fprintf(stderr, "Failed to execute command '%s' with error: %s\n", args[0], strerror(errno));
       }
       else
       {
         waitpid(p, &status, 0);
         c->status = WEXITSTATUS(status);
-        fprintf(stderr, "child exited with status %d\n", c->status);
-        
       }
+      break;
     }
     case SUBSHELL_COMMAND:
       ;
