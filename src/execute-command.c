@@ -24,7 +24,10 @@
 #else
 #include <error.h>
 #endif
-
+#include <unistd.h>
+#include <sys/wait.h>
+#include "alloc.h"
+#include <string.h>
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
 
@@ -47,6 +50,43 @@ command_status (command_t c)
 void
 execute_command (command_t c, int profiling)
 {
-  /* FIXME: Replace this with your implementation, like 'prepare_profiling'.  */
-  error (1, 0, "command execution not yet implemented");
+  (void)profiling; // We're not doing anything with this flag yet.
+  if(!c)
+  {
+    error(1, 0, "We tried ot execute a NULL command");
+  }
+  pid_t p;
+  int status;
+  switch(c->type)
+  {
+    case IF_COMMAND:
+    case WHILE_COMMAND:
+    case UNTIL_COMMAND:
+    case PIPE_COMMAND:
+    case SEQUENCE_COMMAND:
+    case SIMPLE_COMMAND:
+    {
+      p = fork();
+      if (!p)
+      {
+        int word_count = 0;
+        for (;c->u.word[word_count] != NULL; word_count++)
+          ;
+        char **args = checked_malloc((word_count + 1) * sizeof(char*));
+        args[0] = c->u.word[0];
+        memcpy(&args[1], c->u.word, word_count * sizeof(char *));
+        execvp(args[0], args);
+      }
+      else
+      {
+        waitpid(p, &status, 0);
+        if (WIFEXITED(status))
+          c->status = WEXITSTATUS(status);
+        else
+          error(1, 0, "Child process did not exit");
+      }
+    }
+    case SUBSHELL_COMMAND:
+      ;
+  }
 }
