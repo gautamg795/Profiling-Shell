@@ -61,6 +61,20 @@ execute_command (command_t c, int profiling)
   switch(c->type)
   {
     case IF_COMMAND:
+    {
+      execute_command(c->u.command[0], profiling);
+      if (! c->u.command[0]->status)
+      {
+        execute_command(c->u.command[1], profiling);
+        c->status = c->u.command[1]->status;
+      }
+      else if (c->u.command[2])
+      {
+        execute_command(c->u.command[2], profiling);
+        c->status = c->u.command[2]->status;
+      }
+      break;
+    }
     case WHILE_COMMAND:
     case UNTIL_COMMAND:
     case PIPE_COMMAND:
