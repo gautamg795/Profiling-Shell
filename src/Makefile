@@ -19,7 +19,7 @@
 # Build with 'make WERROR_CFLAGS=' to keep going despite warnings.
 # However, don't rest until it's warning-free!
 
-CC = gcc-4.9
+CC = gcc
 # WERROR_CFLAGS = -Werror
 CFLAGS = -g -Wall -Wextra -std=gnu11 $(WERROR_CFLAGS)
 LAB = 1
