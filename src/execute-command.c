@@ -116,14 +116,8 @@ execute_command (command_t c, int profiling)
       p = fork();
       if (!p)
       {
-        int word_count = 0;
-        for (;c->u.word[word_count] != NULL; word_count++)
-          ;
-        char **args = checked_malloc((word_count + 2) * sizeof(char*));
-        memcpy(args, c->u.word, word_count * sizeof(char *));
-        args[word_count] = 0;
-        if(execvp(*args, args))
-          fprintf(stderr, "Failed to execute command '%s' with error: %s\n", args[0], strerror(errno));
+        if(execvp(c->u.word[0], c->u.word))
+          fprintf(stderr, "Failed to execute command '%s' with error: %s\n", c->u.word[0], strerror(errno));
       }
       else
       {
