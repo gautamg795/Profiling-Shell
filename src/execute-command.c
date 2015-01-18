@@ -115,12 +115,13 @@ execute_command (command_t c, int profiling)
       while (true)
       {
         execute_command(c->u.command[0], profiling);
-        if (c->u.command[0]->status) // if command returned nonzero
+        if ((c->status = c->u.command[0]->status)) // if command returned nonzero
         {
           execute_command(c->u.command[1], profiling);
           c->status = c->u.command[1]->status;
         }
-        else break;
+        else
+          break;
       }
       break;
     }
