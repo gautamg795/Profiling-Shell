@@ -190,6 +190,7 @@ execute_command (command_t c, int profiling)
     }
     case SUBSHELL_COMMAND:
       execute_command(c->u.command[0], profiling);
+      c->status = c->u.command[0]->status;
       break;
   }
   dup2(stdin_backup, STDIN_FILENO);
