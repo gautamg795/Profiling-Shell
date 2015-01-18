@@ -125,6 +125,43 @@ execute_command (command_t c, int profiling)
       break;
     }
     case PIPE_COMMAND:
+    {
+      int pipefd[2];
+      if (pipe(pipefd) == -1)
+        perror(NULL);
+      pid_t left, right;
+      int status;
+      left = fork();
+      if (!left) // child
+      {
+        close(pipefd[0]); // close read end
+        dup2(pipefd[1], STDOUT_FILENO);
+        execute_command(c->u.command[0], profiling);
+        _exit(c->u.command[0]->status);
+      }
+      else
+      {
+        right = fork();
+        if (!right) // child 2
+        {
+          close(pipefd[1]); // close write end
+          dup2(pipefd[0], STDIN_FILENO);
+          execute_command(c->u.command[1], profiling);
+          _exit(c->u.command[1]->status);
+        }
+        else
+        {
+          waitpid(left, &status, 0);
+          close(pipefd[1]); // After left command has ended, close the write end
+                            // to signal EOF to the right command
+          waitpid(right, &status, 0);
+          close(pipefd[0]);
+          c->status = WEXITSTATUS(status); // We only care about the exit status
+                                           // of the right side command
+        }
+      }
+      break;
+    }
     case SEQUENCE_COMMAND:
     {
       execute_command(c->u.command[0], profiling);
@@ -152,7 +189,8 @@ execute_command (command_t c, int profiling)
       break;
     }
     case SUBSHELL_COMMAND:
-      ;
+      execute_command(c->u.command[0], profiling);
+      break;
   }
   dup2(stdin_backup, STDIN_FILENO);
   dup2(stdout_backup, STDOUT_FILENO);
