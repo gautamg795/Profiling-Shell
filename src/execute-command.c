@@ -20,7 +20,7 @@
 
 #ifdef __APPLE__
 #include <err.h>
-#define error(x,y,z) errc(x,y,z)
+#define error(args...) errc(args)
 #else
 #include <error.h>
 #endif
@@ -57,8 +57,28 @@ execute_command (command_t c, int profiling)
   {
     error(1, 0, "We tried ot execute a NULL command");
   }
-  pid_t p;
-  int status = 0;
+  int stdin_backup = dup(STDIN_FILENO);
+  int stdout_backup = dup(STDOUT_FILENO);
+  if (c->input)
+  {
+    int fd = open(c->input, O_RDONLY);
+    if (fd < 0)
+    {
+      perror(c->input);
+      _exit(1);
+    }
+    dup2(fd, STDIN_FILENO);
+  }
+  if (c->output)
+  {
+    int fd = open(c->output, O_WRONLY | O_CREAT, 0644);
+    if (fd < 0)
+    {
+      perror(c->output);
+      _exit(1);
+    }
+    dup2(fd, STDOUT_FILENO);
+  }
   switch(c->type)
   {
     case IF_COMMAND:
@@ -114,20 +134,26 @@ execute_command (command_t c, int profiling)
     }
     case SIMPLE_COMMAND:
     {
+      pid_t p;
+      int status = 0;
       p = fork();
       if (!p)
       {
         if(execvp(c->u.word[0], c->u.word))
-          fprintf(stderr, "Failed to execute command '%s' with error: %s\n", c->u.word[0], strerror(errno));
+          fprintf(stderr, "Failed to execute command '%s' with error: %s\n",
+                  c->u.word[0], strerror(errno));
       }
       else
       {
         waitpid(p, &status, 0);
-        c->status = WEXITSTATUS(status);
+        if (WIFEXITED(status))
+          c->status = WEXITSTATUS(status);
       }
       break;
     }
     case SUBSHELL_COMMAND:
       ;
   }
+  dup2(stdin_backup, STDIN_FILENO);
+  dup2(stdout_backup, STDOUT_FILENO);
 }
