@@ -228,41 +228,62 @@ syntax_error(char *startpos, char *endpos)
     }
     else if (word_at_pos(c, endpos, "do"))
     {
-      last_do = c;
-      donum++;
+      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      {
+        last_do = c;
+        donum++;
+      }
     }
     else if (word_at_pos(c, endpos, "then"))
     {
-      last_then = c;
-      thennum++;
+      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      {
+        last_then = c;
+        thennum++;
+      }
     }
     else if (word_at_pos(c, endpos, "else"))
     {
-      last_else = c;
-      elsenum++;
+      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      {
+        last_else = c;
+        elsenum++;
+      }
     }
     else if (word_at_pos(c, endpos, "while") || word_at_pos(c, endpos, "until"))
     {
-      last_loop = c;
-      loopnum++;
+      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      {
+        last_loop = c;
+        loopnum++;
+      }
     }
     else if (word_at_pos(c, endpos, "done"))
     {
-      check_after_struct(c+4, endpos);
-      donum--;
-      loopnum--;
+      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      {
+        check_after_struct(c+4, endpos);
+        donum--;
+        loopnum--;
+      }
     }
     else if (word_at_pos(c, endpos, "if"))
     {
-      last_if = c;
-      ifnum++;
+      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      {
+        last_if = c;
+        ifnum++;
+      }
     }
     else if (word_at_pos(c, endpos, "fi"))
     {
-      check_after_struct(c+2, endpos);
-      elsenum--; // Could be negative
-      thennum--;
-      ifnum--;
+      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      {
+        check_after_struct(c+2, endpos);
+        elsenum--; // Could be negative
+        thennum--;
+        ifnum--;
+      }
     }
     if (ifnum < 0 || parnum < 0 || loopnum < 0 || donum < 0 || thennum < 0)
     {
@@ -509,13 +530,13 @@ build_command(char **startpos, char *endpos)
   int internalSubshells = 0;
   for (char *c = front; c != endsearch; c++)
   {
-    if (word_at_pos(c, endsearch, "if"))
+    if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalIf++;
-    else if (word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until"))
+    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalLoops++;
-    else if (word_at_pos(c, endsearch, "fi"))
+    else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalIf--;
-    else if (word_at_pos(c, endsearch, "done"))
+    else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalLoops--;
     else if (*c == '(')
       internalSubshells++;
@@ -532,13 +553,13 @@ build_command(char **startpos, char *endpos)
   internalIf = internalLoops = internalSubshells = 0;
   for (char *c = front; c != endsearch; c++)
   {
-    if (word_at_pos(c, endsearch, "if"))
+    if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalIf++;
-    else if (word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until"))
+    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalLoops++;
-    else if (word_at_pos(c, endsearch, "fi"))
+    else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalIf--;
-    else if (word_at_pos(c, endsearch, "done"))
+    else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalLoops--;
     else if (*c == '(')
       internalSubshells++;
@@ -556,13 +577,13 @@ build_command(char **startpos, char *endpos)
   internalIf = internalLoops = internalSubshells = 0;
   for (char *c = front; c != endsearch; c++)
   {
-    if (word_at_pos(c, endsearch, "if"))
+    if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalIf++;
-    else if (word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until"))
+    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalLoops++;
-    else if (word_at_pos(c, endsearch, "fi"))
+    else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalIf--;
-    else if (word_at_pos(c, endsearch, "done"))
+    else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalLoops--;
     else if (*c == '(')
       internalSubshells++;
@@ -580,13 +601,13 @@ build_command(char **startpos, char *endpos)
   char *right_redir = NULL;
   for (char *c = front; c != endsearch; c++)
   {
-    if (word_at_pos(c, endsearch, "if"))
+    if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalIf++;
-    else if (word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until"))
+    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalLoops++;
-    else if (word_at_pos(c, endsearch, "fi"))
+    else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalIf--;
-    else if (word_at_pos(c, endsearch, "done"))
+    else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalLoops--;
     else if (*c == '(')
       internalSubshells++;
@@ -607,13 +628,13 @@ build_command(char **startpos, char *endpos)
   char *left_paren = NULL;
   for (char *c = front; c != endsearch; c++)
   {
-    if (word_at_pos(c, endsearch, "if"))
+    if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalIf++;
-    else if (word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until"))
+    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalLoops++;
-    else if (word_at_pos(c, endsearch, "fi"))
+    else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalIf--;
-    else if (word_at_pos(c, endsearch, "done"))
+    else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
       internalLoops--;
     else if (*c == '(')
       if (internalLoops == 0 && internalIf == 0)
@@ -628,13 +649,13 @@ build_command(char **startpos, char *endpos)
   if (left_paren) {
     for (char *c = left_paren; c != endpos; c++)
     {
-      if (word_at_pos(c, endsearch, "if"))
+      if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
         internalIf++;
-      else if (word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until"))
+      else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
         internalLoops++;
-      else if (word_at_pos(c, endsearch, "fi"))
+      else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
         internalIf--;
-      else if (word_at_pos(c, endsearch, "done"))
+      else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
         internalLoops--;
       else if (*c == '(')
         internalSubshells++;
@@ -892,7 +913,7 @@ build_if_command(char **startpos, char *endpos)
     }
     
     // We're done!
-    if (word_at_pos(front, endpos, "fi") && numInteriorIfs == 0)
+    if (word_at_pos(front, endpos, "fi") && numInteriorIfs == 0 && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
     {
       // No else statement
       if (posOfElse == NULL)
@@ -998,15 +1019,15 @@ build_if_command(char **startpos, char *endpos)
       break;
     }
     
-    if (word_at_pos(front, endpos, "if"))
+    if (word_at_pos(front, endpos, "if") && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
     {
       numInteriorIfs++;
     }
-    else if (word_at_pos(front, endpos, "fi"))
+    else if (word_at_pos(front, endpos, "fi") && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
     {
       numInteriorIfs--;
     }
-    else if (numInteriorIfs == 0 && word_at_pos(front, endpos, "then"))
+    else if (numInteriorIfs == 0 && word_at_pos(front, endpos, "then") && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
     {
       foundThen = true;
       check_good_char(*startpos, front);
@@ -1016,7 +1037,7 @@ build_if_command(char **startpos, char *endpos)
       cmd->u.command[0] = build_command(startpos, front);
       front = *startpos = front+4; // +4 to pass over the then
     }
-    else if (numInteriorIfs == 0 && word_at_pos(front, endpos, "else") )
+    else if (numInteriorIfs == 0 && word_at_pos(front, endpos, "else")  && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
     {
       if (!foundThen)
         error(1, 0, "Error in if statement.");
@@ -1052,7 +1073,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     }
     
     // We're done!
-    if (word_at_pos(front, endpos, "done") && numInteriorLoops == 0)
+    if (word_at_pos(front, endpos, "done") && numInteriorLoops == 0 && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
     {
       check_good_char(*startpos, front);
       // Build_command on everything between DO and DONE
@@ -1142,15 +1163,15 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
       break;
     }
     
-    if (word_at_pos(front, endpos, "while") || word_at_pos(front, endpos, "until"))
+    if ((word_at_pos(front, endpos, "while") || word_at_pos(front, endpos, "until")) && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
     {
       numInteriorLoops++;
     }
-    else if (word_at_pos(front, endpos, "done"))
+    else if (word_at_pos(front, endpos, "done") && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
     {
       numInteriorLoops--;
     }
-    else if (word_at_pos(front, endpos, "do") && numInteriorLoops == 0)
+    else if (word_at_pos(front, endpos, "do") && numInteriorLoops == 0 && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
     {
       check_good_char(*startpos, front);
       // Build_command on everything before DO
