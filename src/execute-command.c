@@ -83,7 +83,7 @@ execute_command (command_t c, int profiling)
       perror(c->output);
       exit(1);
     }
-    if (dup2(fd, STDOUT_FILENO == -1))
+    if (dup2(fd, STDOUT_FILENO) == -1)
       error(1, errno, "Failed to dup2");
   }
   switch(c->type)
