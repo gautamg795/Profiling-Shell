@@ -216,8 +216,12 @@ execute_command (command_t c, int profiling)
       else if (!p)
       {
         if(execvp(c->u.word[0], c->u.word))
+        {
           fprintf(stderr, "Failed to execute command '%s' with error: %s\n",
                   c->u.word[0], strerror(errno));
+          _exit(1);
+        }
+        
       }
       else
       {
