@@ -206,6 +206,13 @@ execute_command (command_t c, int profiling)
     }
     case SIMPLE_COMMAND:
     {
+      if (strcmp(c->u.word[0], "exec") == 0)
+      {
+        if (c->u.word[1] != NULL)
+          execvp(c->u.word[1], &(c->u.word[1]));
+        else
+          error(1, 0, "`exec' requires a command");
+      }
       pid_t p;
       int status = 0;
       p = fork();
