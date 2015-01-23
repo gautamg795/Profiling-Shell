@@ -55,13 +55,13 @@ add_semicolon(char *startpos, char *endpos)
 
   for (char *c = startpos; c <= endpos; c++)
   {
-    if (word_at_pos(c, endpos, "if"))
+    if (word_at_pos(c, endpos, "if") && (c == startpos || OK_before_struct(c-1, startpos)))
       internalIf++;
-    else if (word_at_pos(c, endpos, "while") || word_at_pos(c, endpos, "until"))
+    else if ((word_at_pos(c, endpos, "while") || word_at_pos(c, endpos, "until")) && (c == startpos || OK_before_struct(c-1, startpos)))
       internalLoops++;
-    else if (word_at_pos(c, endpos, "fi"))
+    else if (word_at_pos(c, endpos, "fi") && (c == startpos || OK_before_struct(c-1, startpos)))
       internalIf--;
-    else if (word_at_pos(c, endpos, "done"))
+    else if (word_at_pos(c, endpos, "done") && (c == startpos || OK_before_struct(c-1, startpos)))
       internalLoops--;
     else if (*c == '(')
       internalSubshells++;
@@ -571,13 +571,13 @@ build_command(char **startpos, char *endpos)
   int internalSubshells = 0;
   for (char *c = front; c != endsearch; c++)
   {
-    if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    if (word_at_pos(c, endsearch, "if") && (c == front || OK_before_struct(c-1, front)))
       internalIf++;
-    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || OK_before_struct(c-1, front)))
       internalLoops++;
-    else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if (word_at_pos(c, endsearch, "fi") && (c == front || OK_before_struct(c-1, front)))
       internalIf--;
-    else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if (word_at_pos(c, endsearch, "done") && (c == front || OK_before_struct(c-1, front)))
       internalLoops--;
     else if (*c == '(')
       internalSubshells++;
@@ -594,13 +594,13 @@ build_command(char **startpos, char *endpos)
   internalIf = internalLoops = internalSubshells = 0;
   for (char *c = front; c != endsearch; c++)
   {
-    if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    if (word_at_pos(c, endsearch, "if") && (c == front || OK_before_struct(c-1, front)))
       internalIf++;
-    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || OK_before_struct(c-1, front)))
       internalLoops++;
-    else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if (word_at_pos(c, endsearch, "fi") && (c == front || OK_before_struct(c-1, front)))
       internalIf--;
-    else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if (word_at_pos(c, endsearch, "done") && (c == front || OK_before_struct(c-1, front)))
       internalLoops--;
     else if (*c == '(')
       internalSubshells++;
@@ -618,13 +618,13 @@ build_command(char **startpos, char *endpos)
   internalIf = internalLoops = internalSubshells = 0;
   for (char *c = front; c != endsearch; c++)
   {
-    if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    if (word_at_pos(c, endsearch, "if") && (c == front || OK_before_struct(c-1, front)))
       internalIf++;
-    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || OK_before_struct(c-1, front)))
       internalLoops++;
-    else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if (word_at_pos(c, endsearch, "fi") && (c == front || OK_before_struct(c-1, front)))
       internalIf--;
-    else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if (word_at_pos(c, endsearch, "done") && (c == front || OK_before_struct(c-1, front)))
       internalLoops--;
     else if (*c == '(')
       internalSubshells++;
@@ -642,13 +642,13 @@ build_command(char **startpos, char *endpos)
   char *right_redir = NULL;
   for (char *c = front; c != endsearch; c++)
   {
-    if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
-      internalIf++;
-    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    if (word_at_pos(c, endsearch, "if") && (c == front || OK_before_struct(c-1, front)))
+    internalIf++;
+    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || OK_before_struct(c-1, front)))
       internalLoops++;
-    else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if (word_at_pos(c, endsearch, "fi") && (c == front || OK_before_struct(c-1, front)))
       internalIf--;
-    else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if (word_at_pos(c, endsearch, "done") && (c == front || OK_before_struct(c-1, front)))
       internalLoops--;
     else if (*c == '(')
       internalSubshells++;
@@ -669,13 +669,13 @@ build_command(char **startpos, char *endpos)
   char *left_paren = NULL;
   for (char *c = front; c != endsearch; c++)
   {
-    if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    if (word_at_pos(c, endsearch, "if") && (c == front || OK_before_struct(c-1, front)))
       internalIf++;
-    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || OK_before_struct(c-1, front)))
       internalLoops++;
-    else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if (word_at_pos(c, endsearch, "fi") && (c == front || OK_before_struct(c-1, front)))
       internalIf--;
-    else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+    else if (word_at_pos(c, endsearch, "done") && (c == front || OK_before_struct(c-1, front)))
       internalLoops--;
     else if (*c == '(')
       if (internalLoops == 0 && internalIf == 0)
@@ -690,13 +690,13 @@ build_command(char **startpos, char *endpos)
   if (left_paren) {
     for (char *c = left_paren; c != endpos; c++)
     {
-      if (word_at_pos(c, endsearch, "if") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+      if (word_at_pos(c, endsearch, "if") && (c == front || OK_before_struct(c-1, front)))
         internalIf++;
-      else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+      else if ((word_at_pos(c, endsearch, "while") || word_at_pos(c, endsearch, "until")) && (c == front || OK_before_struct(c-1, front)))
         internalLoops++;
-      else if (word_at_pos(c, endsearch, "fi") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+      else if (word_at_pos(c, endsearch, "fi") && (c == front || OK_before_struct(c-1, front)))
         internalIf--;
-      else if (word_at_pos(c, endsearch, "done") && (c == front || isspace(c[-1]) || c[-1] == ';' ))
+      else if (word_at_pos(c, endsearch, "done") && (c == front || OK_before_struct(c-1, front)))
         internalLoops--;
       else if (*c == '(')
         internalSubshells++;
@@ -954,7 +954,7 @@ build_if_command(char **startpos, char *endpos)
     }
     
     // We're done!
-    if (word_at_pos(front, endpos, "fi") && numInteriorIfs == 0 && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
+    if (word_at_pos(front, endpos, "fi") && numInteriorIfs == 0 && (front == *startpos || OK_before_struct(front-1, *startpos)))
     {
       // No else statement
       if (posOfElse == NULL)
@@ -1060,15 +1060,15 @@ build_if_command(char **startpos, char *endpos)
       break;
     }
     
-    if (word_at_pos(front, endpos, "if") && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
+    if (word_at_pos(front, endpos, "if") && (front == *startpos || OK_before_struct(front-1, *startpos)))
     {
       numInteriorIfs++;
     }
-    else if (word_at_pos(front, endpos, "fi") && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
+    else if (word_at_pos(front, endpos, "fi") && (front == *startpos || OK_before_struct(front-1, *startpos)))
     {
       numInteriorIfs--;
     }
-    else if (numInteriorIfs == 0 && word_at_pos(front, endpos, "then") && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
+    else if (numInteriorIfs == 0 && word_at_pos(front, endpos, "then") && (front == *startpos || OK_before_struct(front-1, *startpos)))
     {
       foundThen = true;
       check_good_char(*startpos, front);
@@ -1078,7 +1078,7 @@ build_if_command(char **startpos, char *endpos)
       cmd->u.command[0] = build_command(startpos, front);
       front = *startpos = front+4; // +4 to pass over the then
     }
-    else if (numInteriorIfs == 0 && word_at_pos(front, endpos, "else")  && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
+    else if (numInteriorIfs == 0 && word_at_pos(front, endpos, "else") && (front == *startpos || OK_before_struct(front-1, *startpos)))
     {
       if (!foundThen)
         error(1, 0, "Error in if statement.");
@@ -1114,7 +1114,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
     }
     
     // We're done!
-    if (word_at_pos(front, endpos, "done") && numInteriorLoops == 0 && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
+    if (word_at_pos(front, endpos, "done") && numInteriorLoops == 0 && (front == *startpos || OK_before_struct(front-1, *startpos)))
     {
       check_good_char(*startpos, front);
       // Build_command on everything between DO and DONE
@@ -1204,15 +1204,15 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
       break;
     }
     
-    if ((word_at_pos(front, endpos, "while") || word_at_pos(front, endpos, "until")) && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
+    if ((word_at_pos(front, endpos, "while") || word_at_pos(front, endpos, "until")) && (front == *startpos || OK_before_struct(front-1, *startpos)))
     {
       numInteriorLoops++;
     }
-    else if (word_at_pos(front, endpos, "done") && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
+    else if (word_at_pos(front, endpos, "done") && (front == *startpos || OK_before_struct(front-1, *startpos)))
     {
       numInteriorLoops--;
     }
-    else if (word_at_pos(front, endpos, "do") && numInteriorLoops == 0 && (front == *startpos || isspace(front[-1]) || front[-1] == ';' ))
+    else if (word_at_pos(front, endpos, "do") && numInteriorLoops == 0 && (front == *startpos || OK_before_struct(front-1, *startpos)))
     {
       check_good_char(*startpos, front);
       // Build_command on everything before DO
