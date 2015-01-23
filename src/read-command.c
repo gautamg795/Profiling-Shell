@@ -126,19 +126,55 @@ errorline(char *startpos, char *endpos)
   }
 }
 
+bool
+OK_before_struct(char *front, char *back)
+{
+  if (front < back)
+    return false;
+  do
+  {
+    if (strchr("\n;<>|(",*front))
+    {
+      return true;
+    }
+    if (front-2 >= back)
+    {
+      if (word_at_pos(front-2, front, "do"))
+        return true;
+    }
+    if (front-4 >= back)
+    {
+      if (word_at_pos(front-4, front, "then") || word_at_pos(front-4, front, "else"))
+        return true;
+    }
+    if (front-5 >= back)
+    {
+      if (word_at_pos(front-5, front, "while") || word_at_pos(front-5, front, "until"))
+        return true;
+    }
+    if (!isspace(*front))
+    {
+      return false;
+    }
+    front--;
+  }
+  while (front >= back);
+  return true;
+}
+
 void
 check_after_struct(char *startpos, char *endpos)
 {
   if (startpos >= endpos)
     error(1, 0, "Syntax error.");
-    do
-    {
-      if (strchr("\n;<>|",*startpos))
-        return;
-      else if (!isspace(*startpos))
-        error(1, 0, "Syntax error.");
-      startpos++;
-    }
+  do
+  {
+    if (strchr("\n;<>|",*startpos))
+      return;
+    else if (!isspace(*startpos))
+      error(1, 0, "Syntax error.");
+    startpos++;
+  }
   while (startpos < endpos);
   return;
 }
@@ -181,8 +217,9 @@ bad_next_char(char *startpos, char *endpos)
 bool
 syntax_error(char *startpos, char *endpos)
 {
-  int ifnum = 0;
+
   int parnum = 0;
+  int ifnum = 0;
   int loopnum =0;
   int donum = 0;
   int thennum = 0;
@@ -228,7 +265,7 @@ syntax_error(char *startpos, char *endpos)
     }
     else if (word_at_pos(c, endpos, "do"))
     {
-      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      if (c == startpos || OK_before_struct(c-1, startpos))
       {
         last_do = c;
         donum++;
@@ -236,7 +273,7 @@ syntax_error(char *startpos, char *endpos)
     }
     else if (word_at_pos(c, endpos, "then"))
     {
-      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      if (c == startpos || OK_before_struct(c-1, startpos))
       {
         last_then = c;
         thennum++;
@@ -244,7 +281,7 @@ syntax_error(char *startpos, char *endpos)
     }
     else if (word_at_pos(c, endpos, "else"))
     {
-      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      if (c == startpos || OK_before_struct(c-1, startpos))
       {
         last_else = c;
         elsenum++;
@@ -252,7 +289,7 @@ syntax_error(char *startpos, char *endpos)
     }
     else if (word_at_pos(c, endpos, "while") || word_at_pos(c, endpos, "until"))
     {
-      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      if (c == startpos || OK_before_struct(c-1, startpos))
       {
         last_loop = c;
         loopnum++;
@@ -260,7 +297,7 @@ syntax_error(char *startpos, char *endpos)
     }
     else if (word_at_pos(c, endpos, "done"))
     {
-      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      if (c == startpos || OK_before_struct(c-1, startpos))
       {
         check_after_struct(c+4, endpos);
         donum--;
@@ -269,7 +306,7 @@ syntax_error(char *startpos, char *endpos)
     }
     else if (word_at_pos(c, endpos, "if"))
     {
-      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      if (c == startpos || OK_before_struct(c-1, startpos))
       {
         last_if = c;
         ifnum++;
@@ -277,7 +314,7 @@ syntax_error(char *startpos, char *endpos)
     }
     else if (word_at_pos(c, endpos, "fi"))
     {
-      if (c == startpos || isspace(c[-1]) || c[-1] == ';')
+      if (c == startpos || OK_before_struct(c-1, startpos))
       {
         check_after_struct(c+2, endpos);
         elsenum--; // Could be negative
@@ -286,6 +323,10 @@ syntax_error(char *startpos, char *endpos)
       }
     }
     if (ifnum < 0 || parnum < 0 || loopnum < 0 || donum < 0 || thennum < 0)
+    {
+      error(1, 0, "Syntax error.");
+    }
+    if (parnum < 0)
     {
       error(1, 0, "Syntax error.");
     }
