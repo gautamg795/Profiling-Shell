@@ -16,7 +16,7 @@ cat >test_exec.sh <<'EOF'
 #! /bin/bash
 echo hello world > a.txt
 
-cat a.txt
+cat a.txt | grep world
 
 echo seq1; echo seq2
 
@@ -41,4 +41,4 @@ test ! -s err.txt || {
 
 ) || exit
 
-#rm -rf "$tmp"
+rm -rf "$tmp"
