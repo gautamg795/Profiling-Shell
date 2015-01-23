@@ -15,12 +15,19 @@ status=
 n=1
 for bad in \
   'bsadfhjk' \
+  '( bsadfhjk )' \
   'cat meow' \
   'echo < qlwkrp932.txt' \
   'echo < qlwkrp932.txt > tmp.txt' \
   'uiptyn | grep i' \
   'echo o | uiptyn' \
-  'echo hello | grep o | uiptyn'
+  'echo hello | grep o | uiptyn' \
+  'if true; then uiptyn; fi' \
+  'if false; then true; else uiptyn; fi' \
+  'if uiptyn; then true; fi' \
+  'while uiptyn; do true; done'
+  #'while true; do uiptyn; done' Succeeds
+  #profsh: Failed to dup stdout: Too many open files
 do
   echo "$bad" >exec_test$n.sh || exit
   ../profsh exec_test$n.sh >exec_test$n.txt 2>exec_err$n.txt && {
