@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdlib.h>
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
 
@@ -58,16 +59,21 @@ execute_command (command_t c, int profiling)
     error(1, 0, "We tried ot execute a NULL command");
   }
   int stdin_backup = dup(STDIN_FILENO);
+  if (stdin_backup == -1)
+    error(1, errno, "Failed to dup stdin");
   int stdout_backup = dup(STDOUT_FILENO);
+  if (stdout_backup == -1)
+    error(1, errno, "Failed to dup stdout");
   if (c->input)
   {
     int fd = open(c->input, O_RDONLY);
     if (fd < 0)
     {
       perror(c->input);
-      _exit(1);
+      exit(1);
     }
-    dup2(fd, STDIN_FILENO);
+    if (dup2(fd, STDIN_FILENO) == -1)
+      error(1, errno, "Failed to dup2");
   }
   if (c->output)
   {
@@ -75,9 +81,10 @@ execute_command (command_t c, int profiling)
     if (fd < 0)
     {
       perror(c->output);
-      _exit(1);
+      exit(1);
     }
-    dup2(fd, STDOUT_FILENO);
+    if (dup2(fd, STDOUT_FILENO == -1))
+      error(1, errno, "Failed to dup2");
   }
   switch(c->type)
   {
@@ -129,34 +136,61 @@ execute_command (command_t c, int profiling)
     {
       int pipefd[2];
       if (pipe(pipefd) == -1)
-        perror(NULL);
+        error(1, errno, "Failed to pipe");
       pid_t left, right;
       int status;
       left = fork();
-      if (!left) // child
+      if (left == -1)
       {
-        close(pipefd[0]); // close read end
-        dup2(pipefd[1], STDOUT_FILENO);
+        error(1, errno, "Failed to fork");
+      }
+      else if (!left) // child
+      {
+        if (close(pipefd[0]) == -1) // close read end
+        {
+          perror("Failed to close read end of pipe");
+          _exit(1);
+        }
+        if (dup2(pipefd[1], STDOUT_FILENO) == -1)
+        {
+          perror("Failed to dup2");
+          _exit(1);
+        }
         execute_command(c->u.command[0], profiling);
         _exit(c->u.command[0]->status);
       }
       else
       {
         right = fork();
-        if (!right) // child 2
+        if (right == -1)
         {
-          close(pipefd[1]); // close write end
-          dup2(pipefd[0], STDIN_FILENO);
+          error(1, errno, "Failed to fork");
+        }
+        else if (!right) // child 2
+        {
+          if (close(pipefd[1]) == -1) // close write end
+          {
+            perror("Failed to close write end of pipe");
+            _exit(1);
+          }
+          if (dup2(pipefd[0], STDIN_FILENO) == -1)
+          {
+            perror("Failed to dup2");
+            _exit(1);
+          }
           execute_command(c->u.command[1], profiling);
           _exit(c->u.command[1]->status);
         }
         else
         {
-          waitpid(left, &status, 0);
-          close(pipefd[1]); // After left command has ended, close the write end
-                            // to signal EOF to the right command
-          waitpid(right, &status, 0);
-          close(pipefd[0]);
+          if (waitpid(left, &status, 0) == -1)
+            error(1, errno, "Failed to waitpid");
+          if (close(pipefd[1]) == -1) // After left command has ended, close the write end
+            error(1, errno, "Failed to close"); // to signal EOF to the right command
+          if (waitpid(right, &status, 0) == -1)
+            error(1, errno, "Failed to waitpid");
+          if (close(pipefd[0]) == -1)
+            error(1, errno, "Failed to close");
           c->status = WEXITSTATUS(status); // We only care about the exit status
                                            // of the right side command
         }
@@ -175,7 +209,11 @@ execute_command (command_t c, int profiling)
       pid_t p;
       int status = 0;
       p = fork();
-      if (!p)
+      if (p == -1)
+      {
+        error(1, errno, "Failed to fork");
+      }
+      else if (!p)
       {
         if(execvp(c->u.word[0], c->u.word))
           fprintf(stderr, "Failed to execute command '%s' with error: %s\n",
@@ -183,7 +221,8 @@ execute_command (command_t c, int profiling)
       }
       else
       {
-        waitpid(p, &status, 0);
+        if (waitpid(p, &status, 0) == -1)
+          error(1, errno, "Failed to waitpid");
         if (WIFEXITED(status))
           c->status = WEXITSTATUS(status);
       }
@@ -194,6 +233,8 @@ execute_command (command_t c, int profiling)
       c->status = c->u.command[0]->status;
       break;
   }
-  dup2(stdin_backup, STDIN_FILENO);
-  dup2(stdout_backup, STDOUT_FILENO);
+  if (dup2(stdin_backup, STDIN_FILENO) == -1)
+    error(1, errno, "Failed to dup2");
+  if (dup2(stdout_backup, STDOUT_FILENO) == -1)
+    error(1, errno, "Failed to waitpid");
 }
