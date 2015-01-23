@@ -20,7 +20,7 @@ echo seq1; echo seq2
 ( echo subshell )
 
 if true
-then echo within_i_f
+then echo withinif
 fi
 
 EOF
