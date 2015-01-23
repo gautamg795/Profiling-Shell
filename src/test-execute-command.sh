@@ -6,14 +6,17 @@
 tmp=$0-$$.tmp
 mkdir "$tmp" || exit
 
-trap "rm -rf $tmp; exit" SIGHUP SIGINT SIGTERM
+trap "rm -rf $tmp; exit" SIGHUP SIGINT SIGTERM #EXIT
 
 (
 cd "$tmp" || exit
 
 cat >test_exec.sh <<'EOF' 
 
-echo hello world!
+#! /bin/bash
+echo hello world > a.txt
+
+cat a.txt
 
 echo seq1; echo seq2
 
