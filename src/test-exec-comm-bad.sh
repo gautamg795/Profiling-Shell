@@ -15,7 +15,12 @@ status=
 n=1
 for bad in \
   'bsadfhjk' \
-  'cat meow'
+  'cat meow' \
+  'echo < qlwkrp932.txt' \
+  'echo < qlwkrp932.txt > tmp.txt' \
+  'uiptyn | grep i' \
+  'echo o | uiptyn' \
+  'echo hello | grep o | uiptyn'
 do
   echo "$bad" >exec_test$n.sh || exit
   ../profsh exec_test$n.sh >exec_test$n.txt 2>exec_err$n.txt && {
