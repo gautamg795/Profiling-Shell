@@ -41,4 +41,4 @@ test ! -s err.txt || {
 
 ) || exit
 
-rm -rf "$tmp"
+#rm -rf "$tmp"
