@@ -339,28 +339,23 @@ syntax_error(char *startpos, char *endpos)
   }
   else if (ifnum)
   {
-    *last_if = rekd; // dotted rectangle
-    return true;
+    error(1, 0, "Syntax error: too many ifs");
   }
   else if (loopnum)
   {
-    *last_loop = rekd; // dotted rectangle
-    return true;
+    error(1, 0, "Syntax error: too many loops");
   }
   else if (donum)
   {
-    *last_do = rekd; // dotted rectangle
-    return true;
+    error(1, 0, "Syntax error: too many dos");
   }
   else if (thennum)
   {
-    *last_then = rekd; // dotted rectangle
-    return true;
+    error(1, 0, "Syntax error: too many thens");
   }
   else if (elsenum > 0)
   {
-    *last_else = rekd; // dotted rectangle
-    return true;
+    error(1, 0, "Syntax error: too many elses");
   }
   
   return false;
