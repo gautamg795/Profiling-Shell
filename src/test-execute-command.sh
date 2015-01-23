@@ -13,17 +13,26 @@ cd "$tmp" || exit
 
 cat >test_exec.sh <<'EOF' 
 
-echo hello
+echo hello world!
+
+echo seq1; echo seq2
+
+( echo subshell )
+
+if true
+then echo within_i_f
+fi
+
 EOF
 
 chmod +x test_exec.sh
-./test_exec.sh >test_exec.exp 2>exp_err.txt || exit
+./test_exec.sh >test_exec.exp || exit
 
-../profsh test_exec.sh >test_exec.txt 2>act_err.txt || exit
+../profsh test_exec.sh >test_exec.txt 2>err.txt || exit
 
 diff -u test_exec.exp test_exec.txt || exit 1
-test ! -s actl_err.txt || {
-  cat act_err.txt
+test ! -s err.txt || {
+  cat err.txt
   exit 1
 }
 
