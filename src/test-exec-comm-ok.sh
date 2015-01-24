@@ -16,20 +16,54 @@ cat >test_exec.sh <<'EOF'
 #! /bin/bash
 echo hello world > a.txt
 
-cat a.txt | grep world
+find . -maxdepth 1 -name a.txt -print0
 
-echo seq1; echo seq2
+cat a.txt | grep world | grep hello > b.txt
+diff a.txt b.txt
 
-( echo subshell )
+cat < b.txt > c.txt
+head c.txt | tr a-z A-Z > d.txt
+diff c.txt d.txt
+
+(cat) < d.txt
+(cat d.txt) > e.txt
+(cat e.txt) | cat
+cat e.txt | (cat)
+
+echo seq1; echo seq2; echo seq3
+
+( echo subshell; ( echo subsubshell ) )
+
+:
 
 if true
 then echo withinthen
+fi
+
+if true
+then
+  if true;
+  then echo withininnerthen; fi
 fi
 
 if false
 then true
 else echo withinelse
 fi
+
+if cat < a.txt | tr a-z A-Z | sort -u; then echo sort succeeded!;
+else echo sort failed!; fi
+
+while false
+do nothing
+done
+
+until true
+do nothing
+done
+
+# while cat a.txt; do rm a.txt; done
+# Correctly reports error on second run
 
 EOF
 
