@@ -74,6 +74,7 @@ execute_command (command_t c, int profiling)
     }
     if (dup2(fd, STDIN_FILENO) == -1)
       error(1, errno, "Failed to dup2");
+    close(fd);
   }
   if (c->output)
   {
@@ -85,6 +86,7 @@ execute_command (command_t c, int profiling)
     }
     if (dup2(fd, STDOUT_FILENO) == -1)
       error(1, errno, "Failed to dup2");
+    close(fd);
   }
   switch(c->type)
   {
@@ -254,4 +256,6 @@ execute_command (command_t c, int profiling)
     error(1, errno, "Failed to dup2");
   if (dup2(stdout_backup, STDOUT_FILENO) == -1)
     error(1, errno, "Failed to waitpid");
+  close(stdin_backup);
+  close(stdout_backup);
 }
