@@ -976,7 +976,7 @@ build_if_command(char **startpos, char *endpos)
         cmd->u.command[2] = build_command(startpos, front);
       }
       // TODO: How do we update startpos to note that we are done with this if?
-      *startpos = front+3;
+      *startpos = front+2;
       char *left_redir = 0, *right_redir = 0;
       char *actual_endsearch;
       char *endsearch;
@@ -1117,7 +1117,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
       add_semicolon(*startpos, front);
       cmd->u.command[1] = build_command(startpos, front);
       // TODO: How do we update startpos to note that we are done with this while / until ?
-      *startpos = front+5;
+      *startpos = front+4;
       char *left_redir = 0, *right_redir = 0;
       char *endsearch;
       for (endsearch = *startpos; ; endsearch++)
