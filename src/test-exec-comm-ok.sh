@@ -23,7 +23,12 @@ echo seq1; echo seq2
 ( echo subshell )
 
 if true
-then echo withinif
+then echo withinthen
+fi
+
+if false
+then true
+else echo withinelse
 fi
 
 EOF

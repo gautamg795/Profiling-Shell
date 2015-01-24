@@ -26,7 +26,7 @@ for bad in \
   'if false; then true; else uiptyn; fi' \
   'if uiptyn; then true; fi' \
   'while uiptyn; do true; done'
-  #'while true; do uiptyn; done' Succeeds
+  #'while true; do uiptyn; done' #Succeeds
   #profsh: Failed to dup stdout: Too many open files
 do
   echo "$bad" >exec_test$n.sh || exit
