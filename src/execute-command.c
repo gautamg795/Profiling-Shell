@@ -92,6 +92,7 @@ execute_command (command_t c, int profiling)
   {
     case IF_COMMAND:
     {
+      c->status = 0;
       execute_command(c->u.command[0], profiling);
       if (! c->u.command[0]->status) // if command returned 0
       {
@@ -107,6 +108,7 @@ execute_command (command_t c, int profiling)
     }
     case WHILE_COMMAND:
     {
+      c->status = 0;
       while (true)
       {
         execute_command(c->u.command[0], profiling);
@@ -121,6 +123,7 @@ execute_command (command_t c, int profiling)
     }
     case UNTIL_COMMAND:
     {
+      c->status = 0;
       while (true)
       {
         execute_command(c->u.command[0], profiling);
