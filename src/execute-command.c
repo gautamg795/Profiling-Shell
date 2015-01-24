@@ -213,6 +213,12 @@ execute_command (command_t c, int profiling)
         else
           error(1, 0, "`exec' requires a command");
       }
+      else if (strcmp(c->u.word[0], ":") == 0)
+      {
+        free(c->u.word[0]);
+        c->u.word[0] = checked_malloc(5 * sizeof(char));
+        strcpy(c->u.word[0], "true");
+      }
       pid_t p;
       int status = 0;
       p = fork();
