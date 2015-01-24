@@ -224,12 +224,6 @@ syntax_error(char *startpos, char *endpos)
   int donum = 0;
   int thennum = 0;
   int elsenum = 0;
-  char *last_open_paren = NULL;
-  char *last_if = NULL;
-  char *last_loop = NULL;
-  char *last_do = NULL;
-  char *last_then = NULL;
-  char *last_else = NULL;
   
   for (char *c = startpos; c <= endpos; c++)
   {
@@ -256,7 +250,6 @@ syntax_error(char *startpos, char *endpos)
     
     if (*c == '(')
     {
-      last_open_paren = c;
       parnum++;
     }
     else if (*c ==')')
@@ -267,7 +260,6 @@ syntax_error(char *startpos, char *endpos)
     {
       if (c == startpos || OK_before_struct(c-1, startpos))
       {
-        last_do = c;
         donum++;
       }
     }
@@ -275,7 +267,6 @@ syntax_error(char *startpos, char *endpos)
     {
       if (c == startpos || OK_before_struct(c-1, startpos))
       {
-        last_then = c;
         thennum++;
       }
     }
@@ -283,7 +274,6 @@ syntax_error(char *startpos, char *endpos)
     {
       if (c == startpos || OK_before_struct(c-1, startpos))
       {
-        last_else = c;
         elsenum++;
       }
     }
@@ -291,7 +281,6 @@ syntax_error(char *startpos, char *endpos)
     {
       if (c == startpos || OK_before_struct(c-1, startpos))
       {
-        last_loop = c;
         loopnum++;
       }
     }
@@ -308,7 +297,6 @@ syntax_error(char *startpos, char *endpos)
     {
       if (c == startpos || OK_before_struct(c-1, startpos))
       {
-        last_if = c;
         ifnum++;
       }
     }
@@ -334,8 +322,7 @@ syntax_error(char *startpos, char *endpos)
   
   if (parnum)
   {
-    *last_open_paren = rekd; // dotted rectangle
-    return true;
+    error(1, 0, "Syntax error: parenthesis");
   }
   else if (ifnum)
   {
@@ -1051,6 +1038,8 @@ build_if_command(char **startpos, char *endpos)
           cmd->input[original_endsearch - left_redir] = '\0';
         }
       }
+      if (*actual_endsearch == ';')
+        actual_endsearch++;
       *startpos = actual_endsearch;
       break;
     }
@@ -1195,6 +1184,8 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
           cmd->input[original_endsearch - left_redir] = '\0';
         }
       }
+      if (*actual_endsearch == ';')
+        actual_endsearch++;
       *startpos = actual_endsearch;
       break;
     }
