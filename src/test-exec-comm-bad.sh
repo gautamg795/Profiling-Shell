@@ -43,4 +43,4 @@ done
 exit $status
 ) || exit
 
-#rm -rf "$tmp"
+rm -rf "$tmp"
