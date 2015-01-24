@@ -16,7 +16,7 @@ n=1
 for bad in \
   'bsadfhjk' \
   '( bsadfhjk )' \
-  'cat meow' \
+  'cat meow' \
   'echo < qlwkrp932.txt' \
   'echo < qlwkrp932.txt > tmp.txt' \
   'uiptyn | grep i' \
@@ -43,4 +43,4 @@ done
 exit $status
 ) || exit
 
-rm -rf "$tmp"
+#rm -rf "$tmp"
