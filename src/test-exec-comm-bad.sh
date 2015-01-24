@@ -25,7 +25,7 @@ for bad in \
   'if true; then uiptyn; fi' \
   'if false; then true; else uiptyn; fi'
 #  'if uiptyn; then true; fi' \
-#  'while uiptyn; do true; done'
+#  'while uiptyn; do true; done' \
 #  'while true; do uiptyn; done'
 do
   echo "$bad" >exec_test$n.sh || exit
