@@ -56,7 +56,7 @@ execute_command (command_t c, int profiling)
 {
   if(!c)
   {
-    error(1, 0, "We tried ot execute a NULL command");
+    error(1, 0, "We tried to execute a NULL command");
   }
   int stdin_backup = dup(STDIN_FILENO);
   if (stdin_backup == -1)
