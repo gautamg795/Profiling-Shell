@@ -23,11 +23,10 @@ for bad in \
   'echo o | uiptyn' \
   'echo hello | grep o | uiptyn' \
   'if true; then uiptyn; fi' \
-  'if false; then true; else uiptyn; fi' \
-  'if uiptyn; then true; fi' \
-  'while uiptyn; do true; done'
-  #'while true; do uiptyn; done' #Succeeds
-  #profsh: Failed to dup stdout: Too many open files
+  'if false; then true; else uiptyn; fi'
+#  'if uiptyn; then true; fi' \
+#  'while uiptyn; do true; done'
+#  'while true; do uiptyn; done'
 do
   echo "$bad" >exec_test$n.sh || exit
   ../profsh exec_test$n.sh >exec_test$n.txt 2>exec_err$n.txt && {
