@@ -32,6 +32,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
+extern bool file_error;
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
 
@@ -41,8 +42,7 @@ prepare_profiling (char const *name)
   /* FIXME: Replace this with your implementation.  You may need to
      add auxiliary functions and otherwise modify the source code.
      You can also use external functions defined in the GNU C Library.  */
-  error (0, 0, "warning: profiling not yet implemented");
-  return -1;
+  return open(name, O_WRONLY | O_CREAT | O_TRUNC);
 }
 
 int
