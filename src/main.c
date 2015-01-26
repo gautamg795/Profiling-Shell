@@ -27,7 +27,9 @@
 #include <stdio.h>
 #include <time.h>
 #include "command.h"
-
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 static char const *program_name;
 static char const *script_name;
 bool file_error = false;
@@ -102,14 +104,15 @@ main (int argc, char **argv)
   {
     char s[1024];
     struct timespec t;
+    clock_getres(CLOCK_REALTIME, &t);
     if(clock_gettime(CLOCK_REALTIME, &t) == -1)
     {
       perror(NULL);
       exit(1);
     }
-    double endtime = t.tv_sec + (1000000)*(double)t.tv_usec;
-    snprintf(s, 1023, "%d", endtime);
-    write(profiling, s, 1023);
+    double endtime = t.tv_sec + (double)t.tv_nsec / 1000000000;
+    snprintf(s, 1023, "%.6f\n", endtime);
+    write(profiling, s, strlen(s));
   }
   return retval;
 }
