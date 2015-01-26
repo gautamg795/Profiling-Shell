@@ -135,5 +135,6 @@ main (int argc, char **argv)
     snprintf(s, 1023, "%.6f %.6f %.3f %.3f [%d]\n", endtime, elapsedtime, utime, stime, shell_pid);
     write(profiling, s, strlen(s));
   }
+  close(profiling);
   return retval;
 }
