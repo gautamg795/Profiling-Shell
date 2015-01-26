@@ -78,7 +78,7 @@ execute_command (command_t c, int profiling)
   }
   if (c->output)
   {
-    int fd = open(c->output, O_WRONLY | O_CREAT, 0644);
+    int fd = open(c->output, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd < 0)
     {
       perror(c->output);
