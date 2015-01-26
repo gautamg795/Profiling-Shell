@@ -25,12 +25,12 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>
-
+#include <time.h>
 #include "command.h"
 
 static char const *program_name;
 static char const *script_name;
-
+bool file_error = false;
 static void
 usage (void)
 {
@@ -98,5 +98,9 @@ main (int argc, char **argv)
 
   int retval = print_tree || !last_command ? 0 : command_status (last_command);
   free_command_stream(command_stream);
+  if (profile_name && !file_error)
+  {
+    char s[1024];
+  }
   return retval;
 }
