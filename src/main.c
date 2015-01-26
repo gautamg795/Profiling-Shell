@@ -101,6 +101,15 @@ main (int argc, char **argv)
   if (profile_name && !file_error)
   {
     char s[1024];
+    struct timespec t;
+    if(clock_gettime(CLOCK_REALTIME, &t) == -1)
+    {
+      perror(NULL);
+      exit(1);
+    }
+    double endtime = t.tv_sec + (1000000)*(double)t.tv_usec;
+    snprintf(s, 1023, "%d", endtime);
+    write(profiling, s, 1023);
   }
   return retval;
 }
