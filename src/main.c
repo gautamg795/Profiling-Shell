@@ -30,6 +30,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+
 static char const *program_name;
 static char const *script_name;
 bool file_error = false;
@@ -48,6 +51,12 @@ get_next_byte (void *stream)
 int
 main (int argc, char **argv)
 {
+  struct timespec begin_time;
+  if(clock_gettime(CLOCK_MONOTONIC, &begin_time) == -1)
+  {
+      perror(NULL);
+      exit(1);
+  }
   int command_number = 1;
   bool print_tree = false;
   char const *profile_name = 0;
@@ -111,7 +120,10 @@ main (int argc, char **argv)
       exit(1);
     }
     double endtime = t.tv_sec + (double)t.tv_nsec / 1000000000;
-    snprintf(s, 1023, "%.6f\n", endtime);
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    struct timespec elapsed = diff(begin_time, t);
+    double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / 1000000000;
+    snprintf(s, 1023, "%.6f %.6f\n", endtime, elapsedtime);
     write(profiling, s, strlen(s));
   }
   return retval;

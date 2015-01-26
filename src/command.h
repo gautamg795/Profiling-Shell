@@ -46,6 +46,7 @@ void free_command(command_t cmd);
    nonnegative integer flag useful as an argument to
    execute_command.  */
 int prepare_profiling (char const *filename);
+struct timespec diff(struct timespec first, struct timespec second);
 
 /* Read a command from STREAM; return it, or NULL on EOF.  If there is
    an error, report the error and exit instead of returning.  */
