@@ -309,9 +309,32 @@ execute_command (command_t c, int profiling)
       break;
     }
     case SUBSHELL_COMMAND:
-      execute_command(c->u.command[0], profiling);
-      c->status = c->u.command[0]->status;
+    {
+      pid_t p;
+      int status;
+      p = fork();
+      if (p < 0)
+      {
+          perror(NULL);
+          _exit(1);
+      }
+      else if (p == 0)
+      {
+        execute_command(c->u.command[0], profiling);
+        c->status = c->u.command[0]->status;
+        _exit(c->status);
+      }
+      else
+      {
+          if(waitpid(p, &status, 0) == -1)
+          {
+              perror(NULL);
+              _exit(1);
+          }
+          c->status = WEXITSTATUS(status);
+      }
       break;
+    }
   }
   if (dup2(stdin_backup, STDIN_FILENO) == -1)
     error(1, errno, "Failed to dup2");
