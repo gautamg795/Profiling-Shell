@@ -267,10 +267,13 @@ execute_command (command_t c, int profiling)
       }
       else
       {
-        if (waitpid(p, &status, 0) == -1)
-          error(1, errno, "Failed to waitpid");
         if (profiling > 0)
         {
+            struct rusage usage;
+            if (wait4(p, &status, 0, &usage) == -1)
+            {
+                error(1, errno, "Failed to waitpid");
+            }
             char s[1024];
             struct timespec end_time;
             if(clock_gettime(CLOCK_REALTIME, &end_time) == -1)
@@ -285,12 +288,6 @@ execute_command (command_t c, int profiling)
                 exit(1);
             }
             struct timespec elapsed = diff(start_time, end_time);
-            struct rusage usage;
-            if (getrusage(RUSAGE_SELF, &usage) == -1)
-            {
-                perror(NULL);
-                exit(1);
-            }
             double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
             double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / USECS_PER_SEC;
             double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / USECS_PER_SEC;
@@ -304,6 +301,8 @@ execute_command (command_t c, int profiling)
             sprintf(s+strlen(s), "\n");
             write(profiling, s, strlen(s));
         }
+        else if (waitpid(p, &status, 0) == -1)
+          error(1, errno, "Failed to waitpid");
         
         if (WIFEXITED(status))
           c->status = WEXITSTATUS(status);
