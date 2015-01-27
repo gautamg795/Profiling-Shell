@@ -36,6 +36,8 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 extern bool file_error;
+extern double NSECS_PER_SEC;
+extern double USECS_PER_SEC;
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
 
@@ -276,22 +278,22 @@ execute_command (command_t c, int profiling)
                 perror(NULL);
                 exit(1);
             }
-            double endtime = end_time.tv_sec + (double)end_time.tv_nsec / 1000000000.0;
+            double endtime = end_time.tv_sec + (double)end_time.tv_nsec / NSECS_PER_SEC;
             if(clock_gettime(CLOCK_MONOTONIC, &end_time) == -1)
             {
                 perror(NULL);
                 exit(1);
             }
             struct timespec elapsed = diff(start_time, end_time);
-            double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / 1000000000.0;
             struct rusage usage;
             if (getrusage(RUSAGE_SELF, &usage) == -1)
             {
                 perror(NULL);
                 exit(1);
             }
-            double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / 1000000.0;
-            double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / 1000000.0;
+            double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
+            double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / USECS_PER_SEC;
+            double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / USECS_PER_SEC;
             snprintf(s, 1023, "%.6f %.6f %.3f %.3f", endtime, elapsedtime, utime, stime);
             char** w = c->u.word;
             while (*w != NULL && strlen(s) < 1023)
