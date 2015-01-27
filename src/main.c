@@ -35,6 +35,8 @@
 
 static char const *program_name;
 static char const *script_name;
+const double NSECS_PER_SEC = 1000000000;
+const double USECS_PER_SEC = 1000000;
 bool file_error = false;
 static void
 usage (void)
@@ -119,18 +121,18 @@ main (int argc, char **argv)
       perror(NULL);
       exit(1);
     }
-    double endtime = t.tv_sec + (double)t.tv_nsec / 1000000000.0;
+    double endtime = t.tv_sec + (double)t.tv_nsec / NSECS_PER_SEC;
     clock_gettime(CLOCK_MONOTONIC, &t);
     struct timespec elapsed = diff(begin_time, t);
-    double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / 1000000000.0;
+    double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
     struct rusage usage;
     if (getrusage(RUSAGE_SELF, &usage) == -1)
     {
         perror(NULL);
         exit(1);
     }
-    double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / 1000000.0;
-    double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / 1000000.0;
+    double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / USECS_PER_SEC;
+    double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / USECS_PER_SEC;
     pid_t shell_pid = getpid();
     snprintf(s, 1023, "%.6f %.6f %.3f %.3f [%d]\n", endtime, elapsedtime, utime, stime, shell_pid);
     write(profiling, s, strlen(s));
