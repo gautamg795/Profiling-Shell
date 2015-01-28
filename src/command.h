@@ -48,7 +48,8 @@ void free_command(command_t cmd);
 int prepare_profiling (char const *filename);
 struct timespec diff(struct timespec first, struct timespec second);
 void total_rusage(double *user, double *system);
-
+double timespec_to_sec(struct timespec *ts);
+double timeval_to_sec(struct timeval *tv);
 /* Read a command from STREAM; return it, or NULL on EOF.  If there is
    an error, report the error and exit instead of returning.  */
 command_t read_command_stream (command_stream_t stream);

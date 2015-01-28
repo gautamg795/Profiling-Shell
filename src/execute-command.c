@@ -50,7 +50,8 @@ prepare_profiling (char const *name)
   return open(name, O_WRONLY | O_CREAT | O_APPEND, 0644);
 }
 
-struct timespec diff(struct timespec start, struct timespec end)
+struct timespec
+diff(struct timespec start, struct timespec end)
 {
     struct timespec temp;
     if ((end.tv_nsec-start.tv_nsec)<0) {
@@ -63,7 +64,8 @@ struct timespec diff(struct timespec start, struct timespec end)
     return temp;
 }
 
-void total_rusage(double *user, double *system)
+void
+total_rusage(double *user, double *system)
 {
     struct rusage selfusage, childusage;
     struct timeval utime, stime;
@@ -81,6 +83,18 @@ void total_rusage(double *user, double *system)
     timeradd(&(selfusage.ru_stime), &(childusage.ru_stime), &stime);
     *user = utime.tv_sec + (double)utime.tv_usec / USECS_PER_SEC;
     *system = stime.tv_sec + (double)stime.tv_usec / USECS_PER_SEC;
+}
+
+double
+timespec_to_sec(struct timespec *ts)
+{
+  return ts->tv_sec + (double)ts->tv_nsec / NSECS_PER_SEC;
+}
+
+double
+timeval_to_sec(struct timeval *tv)
+{
+  return tv->tv_sec + (double)tv->tv_usec / USECS_PER_SEC;
 }
 
 int
