@@ -121,10 +121,10 @@ main (int argc, char **argv)
       perror(NULL);
       exit(1);
     }
-    double endtime = t.tv_sec + (double)t.tv_nsec / NSECS_PER_SEC;
+    double endtime = timespec_to_sec(&t);
     clock_gettime(CLOCK_MONOTONIC, &t);
     struct timespec elapsed = diff(begin_time, t);
-    double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
+    double elapsedtime = timespec_to_sec(&elapsed);
     double utime, stime;
     total_rusage(&utime, &stime);
     pid_t shell_pid = getpid();
