@@ -38,15 +38,10 @@
 extern bool file_error;
 extern double NSECS_PER_SEC;
 extern double USECS_PER_SEC;
-/* FIXME: You may need to add #include directives, macro definitions,
-   static function definitions, etc.  */
 
 int
 prepare_profiling (char const *name)
 {
-  /* FIXME: Replace this with your implementation.  You may need to
-     add auxiliary functions and otherwise modify the source code.
-     You can also use external functions defined in the GNU C Library.  */
   return open(name, O_WRONLY | O_CREAT | O_APPEND, 0644);
 }
 
@@ -64,26 +59,6 @@ diff(struct timespec start, struct timespec end)
     return temp;
 }
 
-void
-total_rusage(double *user, double *system)
-{
-    struct rusage selfusage, childusage;
-    struct timeval utime, stime;
-    if (getrusage(RUSAGE_SELF, &selfusage) == -1)
-    {
-        perror(NULL);
-        _exit(1);
-    }
-    if (getrusage(RUSAGE_CHILDREN, &childusage) == -1)
-    {
-        perror(NULL);
-        _exit(1);
-    }
-    timeradd(&(selfusage.ru_utime), &(childusage.ru_utime), &utime);
-    timeradd(&(selfusage.ru_stime), &(childusage.ru_stime), &stime);
-    *user = utime.tv_sec + (double)utime.tv_usec / USECS_PER_SEC;
-    *system = stime.tv_sec + (double)stime.tv_usec / USECS_PER_SEC;
-}
 
 double
 timespec_to_sec(struct timespec *ts)
@@ -301,7 +276,7 @@ execute_command (command_t c, int profiling)
       }
       else
       {
-        if (profiling > 0)
+        if (profiling > 0 && !file_error)
         {
             struct rusage usage;
             if (wait4(p, &status, 0, &usage) == -1)
@@ -333,7 +308,8 @@ execute_command (command_t c, int profiling)
                 w++;
             }
             sprintf(s+strlen(s), "\n");
-            write(profiling, s, strlen(s));
+            if(write(profiling, s, strlen(s)) == -1)
+                file_error = true;
         }
         else if (waitpid(p, &status, 0) == -1)
           error(1, errno, "Failed to waitpid");

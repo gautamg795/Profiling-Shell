@@ -50,6 +50,27 @@ get_next_byte (void *stream)
   return getc (stream);
 }
 
+void
+total_rusage(double *user, double *system)
+{
+    struct rusage selfusage, childusage;
+    struct timeval utime, stime;
+    if (getrusage(RUSAGE_SELF, &selfusage) == -1)
+    {
+        perror(NULL);
+        _exit(1);
+    }
+    if (getrusage(RUSAGE_CHILDREN, &childusage) == -1)
+    {
+        perror(NULL);
+        _exit(1);
+    }
+    timeradd(&(selfusage.ru_utime), &(childusage.ru_utime), &utime);
+    timeradd(&(selfusage.ru_stime), &(childusage.ru_stime), &stime);
+    *user = utime.tv_sec + (double)utime.tv_usec / USECS_PER_SEC;
+    *system = stime.tv_sec + (double)stime.tv_usec / USECS_PER_SEC;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -130,7 +151,7 @@ main (int argc, char **argv)
     pid_t shell_pid = getpid();
     snprintf(s, 1023, "%.6f %.6f %.3f %.3f [%d]\n", endtime, elapsedtime, utime, stime, shell_pid);
     write(profiling, s, strlen(s));
+    close(profiling);
   }
-  close(profiling);
-  return retval;
+  return file_error ? 127 : retval;
 }
