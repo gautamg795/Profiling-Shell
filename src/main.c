@@ -125,14 +125,8 @@ main (int argc, char **argv)
     clock_gettime(CLOCK_MONOTONIC, &t);
     struct timespec elapsed = diff(begin_time, t);
     double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
-    struct rusage usage;
-    if (getrusage(RUSAGE_SELF, &usage) == -1)
-    {
-        perror(NULL);
-        exit(1);
-    }
-    double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / USECS_PER_SEC;
-    double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / USECS_PER_SEC;
+    double utime, stime;
+    total_rusage(&utime, &stime);
     pid_t shell_pid = getpid();
     snprintf(s, 1023, "%.6f %.6f %.3f %.3f [%d]\n", endtime, elapsedtime, utime, stime, shell_pid);
     write(profiling, s, strlen(s));
