@@ -19,7 +19,8 @@ enum command_type;
 
 typedef struct command *command_t;
 typedef struct command_stream *command_stream_t;
-
+struct timeval;
+struct timespec;
 char *read_script(int (*get_next_byte) (void *), void *arg, unsigned long *len);
 command_t build_command(char **startpos, char *endpos);
 command_t build_if_command(char **startpos, char *endpos);
