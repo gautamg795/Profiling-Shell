@@ -103,6 +103,11 @@ find_exec_in_tree(command_t root)
             {
                 return find_exec_in_tree(root->u.command[0]);
             }
+        case IF_COMMAND:
+            {
+                return find_exec_in_tree(root->u.command[0]) ?: find_exec_in_tree(root->u.command[1]) ?: find_exec_in_tree(root->u.command[2]);
+            }
+  
         default:
             return NULL;
     }
@@ -271,7 +276,7 @@ execute_command (command_t c, int profiling)
                 double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
                 double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / USECS_PER_SEC;
                 double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / USECS_PER_SEC;
-                snprintf(s, 1023, "%.6f %.6f %.3f %.3f [%d]\n", endtime, elapsedtime, utime, stime, left);
+                snprintf(s, 1023, "%.6f %.6f %.6f %.6f [%d]\n", endtime, elapsedtime, utime, stime, left);
                 if(write(profiling, s, strlen(s)) == -1)
                     file_error = true;
           }
@@ -302,7 +307,7 @@ execute_command (command_t c, int profiling)
                 double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
                 double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / USECS_PER_SEC;
                 double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / USECS_PER_SEC;
-                snprintf(s, 1023, "%.6f %.6f %.3f %.3f [%d]\n", endtime, elapsedtime, utime, stime, right);
+                snprintf(s, 1023, "%.6f %.6f %.6f %.6f [%d]\n", endtime, elapsedtime, utime, stime, right);
                 if(write(profiling, s, strlen(s)) == -1)
                     file_error = true;
             }
@@ -387,7 +392,7 @@ execute_command (command_t c, int profiling)
             double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
             double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / USECS_PER_SEC;
             double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / USECS_PER_SEC;
-            snprintf(s, 1023, "%.6f %.6f %.3f %.3f", endtime, elapsedtime, utime, stime);
+            snprintf(s, 1023, "%.6f %.6f %.6f %.6f", endtime, elapsedtime, utime, stime);
             char** w = c->u.word;
             while (*w != NULL && strlen(s) < 1023)
             {
@@ -452,7 +457,7 @@ execute_command (command_t c, int profiling)
               command_t exec_cmd = find_exec_in_tree(c->u.command[0]);
               if (exec_cmd)
               {
-                  snprintf(s, 1023, "%.6f %.6f %.3f %.3f", endtime, elapsedtime, utime, stime);
+                  snprintf(s, 1023, "%.6f %.6f %.6f %.6f", endtime, elapsedtime, utime, stime);
                   char **w = exec_cmd->u.word;
                   while (*w != NULL && strlen(s) < 1023)
                   {
@@ -462,7 +467,7 @@ execute_command (command_t c, int profiling)
                   sprintf(s+strlen(s), "\n");
               }
               else
-                snprintf(s, 1023, "%.6f %.6f %.3f %.3f [%d]\n", endtime, elapsedtime, utime, stime, p);
+                snprintf(s, 1023, "%.6f %.6f %.6f %.6f [%d]\n", endtime, elapsedtime, utime, stime, p);
               if(write(profiling, s, strlen(s)) == -1)
                   file_error = true;
 
