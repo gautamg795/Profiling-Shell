@@ -405,9 +405,7 @@ execute_command (command_t c, int profiling)
         }
         else if (waitpid(p, &status, 0) == -1)
           error(1, errno, "Failed to waitpid");
-        
-        if (WIFEXITED(status))
-          c->status = WEXITSTATUS(status);
+        c->status = WEXITSTATUS(status);
       }
       break;
     }
