@@ -149,7 +149,7 @@ main (int argc, char **argv)
     double utime, stime;
     total_rusage(&utime, &stime);
     pid_t shell_pid = getpid();
-    snprintf(s, 1023, "%.6f %.6f %.3f %.3f [%d]\n", endtime, elapsedtime, utime, stime, shell_pid);
+    snprintf(s, 1023, "%.6f %.6f %.6f %.6f [%d]\n", endtime, elapsedtime, utime, stime, shell_pid);
     write(profiling, s, strlen(s));
     close(profiling);
   }
