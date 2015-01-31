@@ -488,7 +488,7 @@ execute_command (command_t c, int profiling)
                   sprintf(s+strlen(s), "\n");
               }
               else
-                snprintf(s, 1023, "%.*f %.*f %.6f %.6f [%d]\n", precision_realtime, endtime, precision_montonic, elapsedtime, utime, stime, p);
+                snprintf(s, 1023, "%.*f %.*f %.6f %.6f [%d]\n", precision_realtime, endtime, precision_monotonic, elapsedtime, utime, stime, p);
               if(write(profiling, s, strlen(s)) == -1)
                   file_error = true;
 
