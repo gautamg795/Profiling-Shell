@@ -39,6 +39,8 @@
 extern bool file_error;
 extern double NSECS_PER_SEC;
 extern double USECS_PER_SEC;
+extern int precision_realtime;
+extern int precision_monotonic;
 static pid_t childpid;
 void
 handle_sigpipe(int sig)
@@ -291,7 +293,7 @@ execute_command (command_t c, int profiling)
                 double elapsedtime = timespec_to_sec(&elapsed);
                 double utime = timeval_to_sec(&(usage.ru_utime));
                 double stime = timeval_to_sec(&(usage.ru_stime));
-                snprintf(s, 1023, "%.6f %.6f %.6f %.6f [%d]\n", endtime, elapsedtime, utime, stime, left);
+                snprintf(s, 1023, "%.*f %.*f %.6f %.6f [%d]\n", precision_realtime, endtime, precision_monotonic, elapsedtime, utime, stime, left);
                 if(write(profiling, s, strlen(s)) == -1)
                     file_error = true;
           }
@@ -323,7 +325,7 @@ execute_command (command_t c, int profiling)
                 double elapsedtime = timespec_to_sec(&elapsed);
                 double utime = timeval_to_sec(&(usage.ru_utime));
                 double stime = timeval_to_sec(&(usage.ru_stime));
-                snprintf(s, 1023, "%.6f %.6f %.6f %.6f [%d]\n", endtime, elapsedtime, utime, stime, right);
+                snprintf(s, 1023, "%.*f %.*f %.6f %.6f [%d]\n", precision_realtime, endtime, precision_monotonic, elapsedtime, utime, stime, right);
                 if(write(profiling, s, strlen(s)) == -1)
                     file_error = true;
             }
@@ -410,7 +412,7 @@ execute_command (command_t c, int profiling)
             double elapsedtime = timespec_to_sec(&elapsed);
             double utime = timeval_to_sec(&(usage.ru_utime));
             double stime = timeval_to_sec(&(usage.ru_stime));
-            snprintf(s, 1023, "%.6f %.6f %.6f %.6f", endtime, elapsedtime, utime, stime);
+            snprintf(s, 1023, "%.*f %.*f %.6f %.6f", precision_realtime, endtime, precision_monotonic, elapsedtime, utime, stime);
             char** w = c->u.word;
             while (*w != NULL && strlen(s) < 1023)
             {
@@ -476,7 +478,7 @@ execute_command (command_t c, int profiling)
               command_t exec_cmd = find_exec_in_tree(c->u.command[0]);
               if (exec_cmd)
               {
-                  snprintf(s, 1023, "%.6f %.6f %.6f %.6f", endtime, elapsedtime, utime, stime);
+                  snprintf(s, 1023, "%.*f %.*f %.6f %.6f", precision_realtime, endtime, precision_monotonic, elapsedtime, utime, stime);
                   char **w = exec_cmd->u.word;
                   while (*w != NULL && strlen(s) < 1023)
                   {
@@ -486,7 +488,7 @@ execute_command (command_t c, int profiling)
                   sprintf(s+strlen(s), "\n");
               }
               else
-                snprintf(s, 1023, "%.6f %.6f %.6f %.6f [%d]\n", endtime, elapsedtime, utime, stime, p);
+                snprintf(s, 1023, "%.*f %.*f %.6f %.6f [%d]\n", precision_realtime, endtime, precision_montonic, elapsedtime, utime, stime, p);
               if(write(profiling, s, strlen(s)) == -1)
                   file_error = true;
 
