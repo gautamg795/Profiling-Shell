@@ -276,23 +276,23 @@ execute_command (command_t c, int profiling)
                     error(1, errno, "Failed to waitpid");
                 }
                 char s[1024];
-                if(clock_gettime(CLOCK_REALTIME, &leftend) == -1)
+                if (clock_gettime(CLOCK_REALTIME, &leftend) == -1)
                 {
                     perror(NULL);
                     exit(1);
                 }
-                double endtime = leftend.tv_sec + (double)leftend.tv_nsec / NSECS_PER_SEC;
-                if(clock_gettime(CLOCK_MONOTONIC, &leftend) == -1)
+                double endtime = timespec_to_sec(&leftend);
+                if (clock_gettime(CLOCK_MONOTONIC, &leftend) == -1)
                 {
                     perror(NULL);
                     exit(1);
                 }
                 struct timespec elapsed = diff(leftstart, leftend);
-                double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
-                double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / USECS_PER_SEC;
-                double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / USECS_PER_SEC;
+                double elapsedtime = timespec_to_sec(&elapsed);
+                double utime = timeval_to_sec(&(usage.ru_utime));
+                double stime = timeval_to_sec(&(usage.ru_stime));
                 snprintf(s, 1023, "%.6f %.6f %.3f %.3f [%d]\n", endtime, elapsedtime, utime, stime, left);
-                if(write(profiling, s, strlen(s)) == -1)
+                if (write(profiling, s, strlen(s)) == -1)
                     file_error = true;
           }
           else if (waitpid(left, &status, 0) == -1)
@@ -308,23 +308,23 @@ execute_command (command_t c, int profiling)
                     error(1, errno, "Failed to waitpid");
                 }
                 char s[1024];
-                if(clock_gettime(CLOCK_REALTIME, &rightend) == -1)
+                if (clock_gettime(CLOCK_REALTIME, &rightend) == -1)
                 {
                     perror(NULL);
                     exit(1);
                 }
-                double endtime = rightend.tv_sec + (double)rightend.tv_nsec / NSECS_PER_SEC;
-                if(clock_gettime(CLOCK_MONOTONIC, &rightend) == -1)
+                double endtime = timespec_to_sec(&rightend);
+                if (clock_gettime(CLOCK_MONOTONIC, &rightend) == -1)
                 {
                     perror(NULL);
                     exit(1);
                 }
                 struct timespec elapsed = diff(rightstart, rightend);
-                double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
-                double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / USECS_PER_SEC;
-                double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / USECS_PER_SEC;
+                double elapsedtime = timespec_to_sec(&elapsed);
+                double utime = timeval_to_sec(&(usage.ru_utime));
+                double stime = timeval_to_sec(&(usage.ru_stime));
                 snprintf(s, 1023, "%.6f %.6f %.3f %.3f [%d]\n", endtime, elapsedtime, utime, stime, right);
-                if(write(profiling, s, strlen(s)) == -1)
+                if (write(profiling, s, strlen(s)) == -1)
                     file_error = true;
             }
           else if (waitpid(right, &status, 0) == -1)
@@ -381,7 +381,6 @@ execute_command (command_t c, int profiling)
                   c->u.word[0], strerror(errno));
           _exit(1);
         }
-        
       }
       else
       {
@@ -396,21 +395,21 @@ execute_command (command_t c, int profiling)
             }
             char s[1024];
             struct timespec end_time;
-            if(clock_gettime(CLOCK_REALTIME, &end_time) == -1)
+            if (clock_gettime(CLOCK_REALTIME, &end_time) == -1)
             {
                 perror(NULL);
                 exit(1);
             }
-            double endtime = end_time.tv_sec + (double)end_time.tv_nsec / NSECS_PER_SEC;
-            if(clock_gettime(CLOCK_MONOTONIC, &end_time) == -1)
+            double endtime = timespec_to_sec(&end_time);
+            if (clock_gettime(CLOCK_MONOTONIC, &end_time) == -1)
             {
                 perror(NULL);
                 exit(1);
             }
             struct timespec elapsed = diff(start_time, end_time);
-            double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
-            double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / USECS_PER_SEC;
-            double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / USECS_PER_SEC;
+            double elapsedtime = timespec_to_sec(&elapsed);
+            double utime = timeval_to_sec(&(usage.ru_utime));
+            double stime = timeval_to_sec(&(usage.ru_stime));
             snprintf(s, 1023, "%.6f %.6f %.3f %.3f", endtime, elapsedtime, utime, stime);
             char** w = c->u.word;
             while (*w != NULL && strlen(s) < 1023)
@@ -419,7 +418,7 @@ execute_command (command_t c, int profiling)
                 w++;
             }
             sprintf(s+strlen(s), "\n");
-            if(write(profiling, s, strlen(s)) == -1)
+            if (write(profiling, s, strlen(s)) == -1)
                 file_error = true;
         }
         else if (waitpid(p, &status, 0) == -1)
@@ -459,21 +458,21 @@ execute_command (command_t c, int profiling)
                   error(1, errno, "Failed to waitpid");
               }
               char s[1024];
-              if(clock_gettime(CLOCK_REALTIME, &end_time) == -1)
+              if (clock_gettime(CLOCK_REALTIME, &end_time) == -1)
               {
                   perror(NULL);
                   exit(1);
               }
-              double endtime = end_time.tv_sec + (double)end_time.tv_nsec / NSECS_PER_SEC;
-              if(clock_gettime(CLOCK_MONOTONIC, &end_time) == -1)
+              double endtime = timespec_to_sec(&end_time);
+              if (clock_gettime(CLOCK_MONOTONIC, &end_time) == -1)
               {
                   perror(NULL);
                   exit(1);
               }
               struct timespec elapsed = diff(start_time, end_time);
-              double elapsedtime = elapsed.tv_sec + (double)elapsed.tv_nsec / NSECS_PER_SEC;
-              double utime = usage.ru_utime.tv_sec + (double)usage.ru_utime.tv_usec / USECS_PER_SEC;
-              double stime = usage.ru_stime.tv_sec + (double)usage.ru_stime.tv_usec / USECS_PER_SEC;
+              double elapsedtime = timespec_to_sec(&elapsed);
+              double utime = timeval_to_sec(&(usage.ru_utime));
+              double stime = timeval_to_sec(&(usage.ru_stime));
               command_t exec_cmd = find_exec_in_tree(c->u.command[0]);
               if (exec_cmd)
               {
@@ -488,11 +487,11 @@ execute_command (command_t c, int profiling)
               }
               else
                 snprintf(s, 1023, "%.6f %.6f %.3f %.3f [%d]\n", endtime, elapsedtime, utime, stime, p);
-              if(write(profiling, s, strlen(s)) == -1)
+              if (write(profiling, s, strlen(s)) == -1)
                   file_error = true;
 
           }
-          else if(waitpid(p, &status, 0) == -1)
+          else if (waitpid(p, &status, 0) == -1)
           {
               perror(NULL);
               _exit(1);
