@@ -35,9 +35,17 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <signal.h>
 extern bool file_error;
 extern double NSECS_PER_SEC;
 extern double USECS_PER_SEC;
+static pid_t childpid;
+void
+handle_sigpipe(int sig)
+{
+   (void)sig;
+   kill(childpid, SIGPIPE);
+}
 
 int
 prepare_profiling (char const *name)
@@ -230,6 +238,8 @@ execute_command (command_t c, int profiling)
       }
       else
       {
+        childpid = left;
+        signal(SIGPIPE, handle_sigpipe);
         clock_gettime(CLOCK_MONOTONIC, &rightstart);
         right = fork();
         if (right == -1)
@@ -249,6 +259,8 @@ execute_command (command_t c, int profiling)
             _exit(1);
           }
           execute_command(c->u.command[1], profiling);
+          if (waitpid(left, NULL, WNOHANG))
+            kill(left, SIGPIPE);
           _exit(c->u.command[1]->status);
         }
         else
@@ -284,6 +296,7 @@ execute_command (command_t c, int profiling)
             error(1, errno, "Failed to waitpid");
           if (close(pipefd[1]) == -1) // After left command has ended, close the write end
             error(1, errno, "Failed to close"); // to signal EOF to the right command
+          childpid = right;
           if (profiling > 0 && !file_error)
             {
                 struct rusage usage;
@@ -317,6 +330,7 @@ execute_command (command_t c, int profiling)
             error(1, errno, "Failed to close");
           c->status = WEXITSTATUS(status); // We only care about the exit status
                                            // of the right side command
+          signal(SIGPIPE, SIG_DFL);
         }
       }
       break;
@@ -368,6 +382,8 @@ execute_command (command_t c, int profiling)
       }
       else
       {
+        childpid = p;
+        signal(SIGPIPE, handle_sigpipe);
         if (profiling > 0 && !file_error)
         {
             struct rusage usage;
@@ -406,6 +422,7 @@ execute_command (command_t c, int profiling)
         else if (waitpid(p, &status, 0) == -1)
           error(1, errno, "Failed to waitpid");
         c->status = WEXITSTATUS(status);
+        signal(SIGPIPE, SIG_DFL);
       }
       break;
     }
@@ -429,6 +446,8 @@ execute_command (command_t c, int profiling)
       }
       else
       {
+          childpid = p;
+          signal(SIGPIPE, handle_sigpipe);
           if (profiling > 0 && !file_error)
           {
               struct rusage usage;
@@ -476,6 +495,7 @@ execute_command (command_t c, int profiling)
               _exit(1);
           }
           c->status = WEXITSTATUS(status);
+          signal(SIGPIPE, SIG_DFL);
       }
       break;
     }
