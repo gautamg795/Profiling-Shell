@@ -38,6 +38,8 @@ static char const *script_name;
 const double NSECS_PER_SEC = 1000000000;
 const double USECS_PER_SEC = 1000000;
 bool file_error = false;
+int precision_realtime = 0;
+int precision_monotonic = 0;
 static void
 usage (void)
 {
@@ -48,6 +50,36 @@ static int
 get_next_byte (void *stream)
 {
   return getc (stream);
+}
+
+int
+get_clock_precision(clockid_t clk_id)
+{
+  struct timespec res;
+  if (clock_getres(clk_id, &res) == -1)
+  {
+    perror(NULL);
+    exit(1);
+  }
+  if (res.tv_sec)
+    return 0;
+  if (res.tv_nsec >= 100000000)
+    return 1;
+  if (res.tv_nsec >= 10000000)
+    return 2;
+  if (res.tv_nsec >= 1000000)
+    return 3;
+  if (res.tv_nsec >= 100000)
+    return 4;
+  if (res.tv_nsec >= 10000)
+    return 5;
+  if (res.tv_nsec >= 1000)
+    return 6;
+  if (res.tv_nsec >= 100)
+    return 7;
+  if (res.tv_nsec >= 10)
+    return 8;
+  return 9;
 }
 
 void
@@ -111,7 +143,9 @@ main (int argc, char **argv)
     {
       profiling = prepare_profiling (profile_name);
       if (profiling < 0)
-	error (1, errno, "%s: cannot open", profile_name);
+        error (1, errno, "%s: cannot open", profile_name);
+      precision_realtime = get_clock_precision(CLOCK_REALTIME);
+      precision_monotonic = get_clock_precision(CLOCK_MONOTONIC);
     }
 
   command_t last_command = NULL;
@@ -149,7 +183,7 @@ main (int argc, char **argv)
     double utime, stime;
     total_rusage(&utime, &stime);
     pid_t shell_pid = getpid();
-    snprintf(s, 1023, "%.6f %.6f %.6f %.6f [%d]\n", endtime, elapsedtime, utime, stime, shell_pid);
+    snprintf(s, 1023, "%.*f %.*f %.6f %.6f [%d]\n", precision_realtime, endtime, precision_monotonic, elapsedtime, utime, stime, shell_pid);
     write(profiling, s, strlen(s));
     close(profiling);
   }
