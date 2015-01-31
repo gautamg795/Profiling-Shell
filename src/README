@@ -2,14 +2,47 @@ CS111 Winter 2015 - Lab 1c - Profiling Shell
 Gautam Gupta #304282688
 Dylan Flanders #504274041
 
+                             -----------
+                             |Questions|
+                             -----------
+1. Must the first column of the log output be in nondecreasing order? If not,
+give a counterexample.
+
+- Yes the first column of the log output must be in nondecreasing order.
+
+2. Can the second column be less than the sum of the third and fourth columns,
+other than due to rounding errors? If so, explain why.
+
+- No, the command's real time cannot be less than the sum of the command's
+user and system CPU times. We used the CLOCK_MONOTONIC clock when logging real
+time because it strictly increases linearly, as opposed to the CLOCK_REALTIME
+clock which can move forwards and backwards. Therefore, CLOCK_MONOTONIC is
+better for our purposes of calculating the time between two events (beginning
+and ending of command execution).
+
+3. Can the second, third, or fourth column ever be negative? Briefly explain.
+
+- The second column cannot be negative, because we used the CLOCK_MONOTONIC clock
+as described in number 2. The third and fourth columns???
+
+4. How did you test your shell to make sure that log lines are not interleaved?
+If you used test scripts, submit a copy of the scripts as part of your submission
+tarball.
+
+- Our log lines can not be interleaved due to the way we implemented our shell.
+
                             --------------
                             |Known Issues|
                             --------------
-If our program finds a syntax error in the input file, it may continue
+1c) After implementing the profiling execution model for our shell, we have no
+additional features that we would like to call to your attention.
+
+1b) We found that we were handling the exec command within a subshell incorrectly.
+We fixed this problem by forking an additional time for subshells, so that the
+contents of the subshell are taken care of by a child process. 
+
+1a) If our program finds a syntax error in the input file, it may continue
 outputting standard format for all commands found before the syntax error and
 then note the line number of the syntax error and exit the program. However,
 since this was later deemed unnecessary, other syntax errors may terminate the
-program immediately with just an error message. 
-
-After implementing the standard execution model for our shell, we have no
-additional features that we would like to call to your attention.
+program immediately with just an error message.
