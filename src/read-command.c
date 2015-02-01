@@ -18,14 +18,7 @@
 #include "command.h"
 #include "command-internals.h"
 
-#ifdef __APPLE__
-#include <err.h>
-#define error(args...) errc(args)
-#else
 #include <error.h>
-__attribute__((noreturn))
-extern void error(int,int,const char*, ...);
-#endif
 #include "alloc.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -33,7 +26,12 @@ extern void error(int,int,const char*, ...);
 #include <string.h>
 #include <ctype.h>
 
+
+__attribute__((noreturn))
+extern void error(int,int,const char*, ...);
+
 static const char rekd = (char)178;
+static unsigned int linenum = 1;
 
 struct command_stream
 {
@@ -43,7 +41,6 @@ struct command_stream
   size_t maxsize;
 };
 
-static unsigned int linenum = 1;
 
 void
 add_semicolon(char *startpos, char *endpos)
@@ -425,7 +422,6 @@ read_script(int (*get_next_byte) (void *), void *arg, size_t *len)
   return buf;
 }
 
-// TODO: Free all dynamically allocated memory
 void
 free_command_stream(command_stream_t stream)
 {
@@ -514,7 +510,7 @@ build_command(char **startpos, char *endpos)
   
   char *endsearch = strchr(front, '\n');
   if (!endsearch || endsearch > endpos)
-    endsearch = endpos; // FIXME: deal with end of file
+    endsearch = endpos; 
   char *original_end = endsearch;
   
   char *rect = memchr(front, rekd, original_end - front);
@@ -697,8 +693,6 @@ build_command(char **startpos, char *endpos)
   cmd->syntaxErr = false;
   cmd->status = -1;
   cmd->input = cmd->output = NULL;
-  
-  // TODO: Deal with freeing memory
   
   memset(cmd->u.command, 0, 3 * sizeof(command_t)); // zero out the command ptrs
   
@@ -928,7 +922,7 @@ build_if_command(char **startpos, char *endpos)
   cmd->input = cmd->output = NULL;
   memset(cmd->u.command, 0, 3 * sizeof(command_t)); // zero out the command ptrs
   
-  while (front < endpos) // TODO: Verify < or <= ?
+  while (front < endpos) 
   {
     if (isspace(*front)) {
       front++;
@@ -962,7 +956,6 @@ build_if_command(char **startpos, char *endpos)
         add_semicolon(*startpos, front);
         cmd->u.command[2] = build_command(startpos, front);
       }
-      // TODO: How do we update startpos to note that we are done with this if?
       *startpos = front+2;
       char *left_redir = 0, *right_redir = 0;
       char *actual_endsearch;
@@ -1090,7 +1083,7 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
   cmd->input = cmd->output = NULL;
   memset(cmd->u.command, 0, 3 * sizeof(command_t)); // zero out the command ptrs
   
-  while (front < endpos) // TODO: Verify < or <= ?
+  while (front < endpos) 
   {
     if (isspace(*front)) {
       front++;
@@ -1105,7 +1098,6 @@ build_loop_command(char **startpos, char *endpos, enum command_type cmdtype)
       // store resulting command in u.command[1]
       add_semicolon(*startpos, front);
       cmd->u.command[1] = build_command(startpos, front);
-      // TODO: How do we update startpos to note that we are done with this while / until ?
       *startpos = front+4;
       char *left_redir = 0, *right_redir = 0;
       char *endsearch;
@@ -1222,7 +1214,6 @@ read_command_stream (command_stream_t s)
     return NULL;
   }
   
-  // TODO: FIX LINENUM!!!
   if (cmd_has_bad_syntax(s->commands[s->command_idx])) {
     error(1, 0, "%u: Syntax error.", linenum);
   }

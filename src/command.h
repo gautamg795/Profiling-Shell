@@ -14,9 +14,11 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 #include <stdbool.h>
 
- // forward declarations
+ // Forward declarations
 enum command_type;
 struct timeval;
 struct timespec;
