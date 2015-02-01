@@ -18,12 +18,7 @@
 #include "command.h"
 #include "command-internals.h"
 
-#ifdef __APPLE__
-#include <err.h>
-#define error(args...) errc(args)
-#else
 #include <error.h>
-#endif
 #include <unistd.h>
 #include <sys/wait.h>
 #include "alloc.h"
@@ -37,12 +32,15 @@
 #include <sys/resource.h>
 #include <signal.h>
 #include <sys/file.h>
+
 extern bool file_error;
 extern double NSECS_PER_SEC;
 extern double USECS_PER_SEC;
 extern int precision_realtime;
 extern int precision_monotonic;
 static pid_t childpid;
+
+
 void
 handle_sigpipe(int sig)
 {
