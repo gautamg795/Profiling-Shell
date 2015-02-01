@@ -16,22 +16,18 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <errno.h>
-#ifdef __APPLE__
-#include <err.h>
-#define error(args...) errc(args)
-#else
 #include <error.h>
-#endif
 #include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
-#include "command.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+
+#include "command.h"
 
 static char const *program_name;
 static char const *script_name;
@@ -40,6 +36,8 @@ const double USECS_PER_SEC = 1000000;
 bool file_error = false;
 int precision_realtime = 0;
 int precision_monotonic = 0;
+
+
 static void
 usage (void)
 {
