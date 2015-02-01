@@ -8,28 +8,46 @@ Dylan Flanders ***REMOVED***
 1. Must the first column of the log output be in nondecreasing order? If not,
 give a counterexample.
 
-- Yes the first column of the log output must be in nondecreasing order.
+- Yes, the first column of the log output must be in nondecreasing order.
+  As soon as a process completes, it obtains an exclusive lock on the profiling
+  file descriptor so that it will write to the file sequentially. This is
+  checked in test-prof-ok.sh
 
 2. Can the second column be less than the sum of the third and fourth columns,
 other than due to rounding errors? If so, explain why.
 
-- No, the command's real time cannot be less than the sum of the command's
-user and system CPU times. We used the CLOCK_MONOTONIC clock when logging real
-time because it strictly increases linearly, as opposed to the CLOCK_REALTIME
-clock which can move forwards and backwards. Therefore, CLOCK_MONOTONIC is
-better for our purposes of calculating the time between two events (beginning
-and ending of command execution).
+- Yes, if the command being run uses multiple cores for execution, the sum of
+  the user/system CPU time can in theory be greater than the real time. 
 
 3. Can the second, third, or fourth column ever be negative? Briefly explain.
 
-- The second column cannot be negative, because we used the CLOCK_MONOTONIC clock
-as described in number 2. The third and fourth columns???
+- The second column cannot be negative, because we used the CLOCK_MONOTONIC
+  which is guaranteed to be strictly increasing; therefore, any time interval
+  between calls to clock_gettime() will always result in a positive time. The
+  third and fourth columns come from the getrusage() call, which does not report
+  negative values for usage times.
 
 4. How did you test your shell to make sure that log lines are not interleaved?
 If you used test scripts, submit a copy of the scripts as part of your submission
 tarball.
 
-- Our log lines can not be interleaved due to the way we implemented our shell.
+- Our log lines can not be interleaved for the same reasons mentioned in #1;
+  when a process completes, it obtains an exclusive lock on the profiling file.
+  It writes the profiling information to the file before unlocking the file. At
+  no point are two processes simultaneously attempting to write to the logging
+  file. We tested this in test-prof-ok.sh using a command such as `sleep .1 |
+  sleep .1` to create two short-running processes that will terminate at
+  approximately the same time. Our test script verifies that the lines are not
+  interleaved and that the lines are still in nondecreasing order. 
+
+
+Explanation of clock choice:
+We used the CLOCK_MONOTONIC clock when logging real time because it strictly
+increases linearly, as opposed to the CLOCK_REALTIME clock which can move
+forwards and backwards to account for NTP corrections.  Therefore,
+CLOCK_MONOTONIC is better for our purposes of calculating the time between two
+events (beginning and ending of command execution), whereas CLOCK_REALTIME is
+sufficient for logging the completion time of a command in seconds in UNIX time.
 
                             --------------
                             |Known Issues|
