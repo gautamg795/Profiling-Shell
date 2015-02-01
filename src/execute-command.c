@@ -36,6 +36,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <signal.h>
+#include <sys/file.h>
 extern bool file_error;
 extern double NSECS_PER_SEC;
 extern double USECS_PER_SEC;
@@ -395,14 +396,11 @@ execute_command (command_t c, int profiling)
             {
                 error(1, errno, "Failed to waitpid");
             }
+            flock(profiling, LOCK_EX);
             char s[1024];
+            double utime = timeval_to_sec(&(usage.ru_utime));
+            double stime = timeval_to_sec(&(usage.ru_stime));
             struct timespec end_time;
-            if (clock_gettime(CLOCK_REALTIME, &end_time) == -1)
-            {
-                perror(NULL);
-                exit(1);
-            }
-            double endtime = timespec_to_sec(&end_time);
             if (clock_gettime(CLOCK_MONOTONIC, &end_time) == -1)
             {
                 perror(NULL);
@@ -410,8 +408,12 @@ execute_command (command_t c, int profiling)
             }
             struct timespec elapsed = diff(start_time, end_time);
             double elapsedtime = timespec_to_sec(&elapsed);
-            double utime = timeval_to_sec(&(usage.ru_utime));
-            double stime = timeval_to_sec(&(usage.ru_stime));
+            if (clock_gettime(CLOCK_REALTIME, &end_time) == -1)
+            {
+                perror(NULL);
+                exit(1);
+            }
+            double endtime = timespec_to_sec(&end_time);
             snprintf(s, 1023, "%.*f %.*f %.6f %.6f", precision_realtime, endtime, precision_monotonic, elapsedtime, utime, stime);
             char** w = c->u.word;
             while (*w != NULL && strlen(s) < 1023)
@@ -422,6 +424,7 @@ execute_command (command_t c, int profiling)
             sprintf(s+strlen(s), "\n");
             if (write(profiling, s, strlen(s)) == -1)
                 file_error = true;
+            flock(profiling, LOCK_UN);
         }
         else if (waitpid(p, &status, 0) == -1)
           error(1, errno, "Failed to waitpid");
