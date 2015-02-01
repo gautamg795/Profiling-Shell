@@ -91,6 +91,36 @@ then
     exit 6
 fi
 
+
+cat >test7.sh << 'EOF'
+
+#! /usr/bin/env bash
+echo hi
+echo hello
+sleep .2 | sleep .2 | sleep .1
+EOF
+../profsh -p test7.out test7.sh 1>/dev/null 2>err7.txt
+if [ "$(wc -l <test7.out)" != "10" -o "$(wc -l <err7.txt)" != "0" ] || ! sort -n test7.out | cmp test7.out -
+then
+    echo "Failed test 7"
+    exit 7
+fi
+
+
+cat >test8.sh << 'EOF'
+
+#! /usr/bin/env bash
+if false
+then echo hi
+fi
+EOF
+../profsh -p test8.out test8.sh 1>/dev/null 2>err8.txt
+if [ "$(wc -l <test8.out)" != "2" -o "$(wc -l <err8.txt)" != "0" ]
+then
+    echo "Failed test 8"
+    exit 8
+fi
+
 ) || exit
 
 rm -rf "$tmp"
