@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# UCLA CS 111 Lab 1c - Test that valid commands are run correctly.
+# UCLA CS 111 Lab 1c - Test that valid commands are profiled correctly.
 # By Dylan Flanders & Gautam Gupta
 
 tmp=$0-$$.tmp
