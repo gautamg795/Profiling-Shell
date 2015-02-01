@@ -1,4 +1,4 @@
-#! /bin/sh
+! /bin/sh
 
 # UCLA CS 111 Lab 1c - Test that errors in profiling are caught.
 # By Dylan Flanders & Gautam Gupta
@@ -31,7 +31,7 @@ then
 	exit 2
 fi
     
-    cat >test3.sh <<EOF
+cat >test3.sh <<EOF
 
 #! /usr/bin/env bash
 echo hello world | rev | cat | cat
