@@ -9,27 +9,27 @@ mkdir "$tmp" || exit
 trap "rm -rf $tmp; exit" SIGHUP SIGINT SIGTERM #EXIT
 
 (
-    cd "$tmp" || exit
+cd "$tmp" || exit
 
-    cat >test1.sh <<EOF
+cat >test1.sh <<EOF
 
 #! /usr/bin/env bash
 echo hello world
 EOF
 
-    ../profsh -p "/" test1.sh 1>/dev/null 2>err1.txt
-    if [ $? -eq 0 -o "$(wc -l <err1.txt)" != "1" ]
-    then
+../profsh -p "/" test1.sh 1>/dev/null 2>err1.txt
+if [ $? -eq 0 -o "$(wc -l <err1.txt)" != "1" ]
+then
 	echo "Failed bad profiling test 1"
 	exit 1
-    fi
+fi
 
-    ../profsh -p /dev/full test1.sh 1>/dev/null 2>err2.txt
-    if [ $? -eq 0 -o "$(wc -l <err2.txt)" != "0" ]
-    then
+../profsh -p /dev/full test1.sh 1>/dev/null 2>err2.txt
+if [ $? -eq 0 -o "$(wc -l <err2.txt)" != "0" ]
+then
 	echo "Failed bad profiling test 2"
 	exit 2
-    fi
+fi
     
     cat >test3.sh <<EOF
 
@@ -37,13 +37,13 @@ EOF
 echo hello world | rev | cat | cat
 EOF
 
-    ( ulimit -u 8
-      ../profsh -p test3.out test3.sh 1>/dev/null 2>err3.txt
-      if [ $? -eq 0 -o "$(wc -l <err3.txt)" == "0" ]
-      then
+( ulimit -u 8
+  ../profsh -p test3.out test3.sh 1>/dev/null 2>err3.txt
+  if [ $? -eq 0 -o "$(wc -l <err3.txt)" == "0" ]
+  then
 	  echo "Failed bad profiling test 3"
 	  exit 3
-      fi )
+  fi )
 
 ) || exit
 
