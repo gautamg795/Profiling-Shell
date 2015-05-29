@@ -9,8 +9,8 @@ If our program finds a syntax error in the input file, it may continue outputtin
 
 ## Project Status
 Part 1a: Complete  
-Part 1b: Incomplete  
-Part 1c: Incomplete  
+Part 1b: Complete  
+Part 1c: Complete  
     
 ## Compilation
 Download and untar the source files, then run `make` in the `src/` directory to generate the `profsh` executable. At this time, it can only be run as `profsh -t <sourcefile.sh>` which will print the command tree structure associated with the input.   
