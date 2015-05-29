@@ -1,5 +1,5 @@
 # Lab 1. Profiling shell
-####Dylan Flanders (***REMOVED***) and Gautam Gupta (***REMOVED***)
+####Dylan Flanders and Gautam Gupta
 ###### CS111 Section 1A, Winter 2015
 * * * 
 
