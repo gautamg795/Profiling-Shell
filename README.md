@@ -146,7 +146,6 @@ You can simplify your shell in one other way, regardless of whether it is run in
 
 * It is OK if your shell attempts to execute the following commands as regular commands, finding them via the PATH environment variable and running them as executables in a separate child process, even if the commands do not exist in the PATH, and even though POSIX does not allow this behavior: `false,fc,fg,getopts,jobs,kill,newgrp,pwd,read,true,umask,unalias,wait `
 
-© 2012–2014 [Paul Eggert][26]. See [copying rules][27].  
 
 [1]: http://en.wikipedia.org/wiki/Big_data
 [2]: http://en.wikipedia.org/wiki/Symmetric_multiprocessing
@@ -173,5 +172,3 @@ You can simplify your shell in one other way, regardless of whether it is run in
 [23]: http://pubs.opengroup.org/onlinepubs/9699919799/utilities/umask.html
 [24]: http://pubs.opengroup.org/onlinepubs/9699919799/utilities/unalias.html
 [25]: http://pubs.opengroup.org/onlinepubs/9699919799/utilities/wait.html
-[26]: ../mail-eggert.html
-[27]: ../copyright.html
