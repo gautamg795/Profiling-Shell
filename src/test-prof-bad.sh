@@ -1,4 +1,4 @@
-! /bin/sh
+#!/bin/sh
 
 # UCLA CS 111 Lab 1c - Test that errors in profiling are caught.
 # By Dylan Flanders & Gautam Gupta

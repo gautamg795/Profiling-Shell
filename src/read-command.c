@@ -1,6 +1,6 @@
  // UCLA CS 111 Lab 1 command reading
 
-// Copyright 2012-2014 Paul Eggert.
+// Copyright 2012-2014 Gautam Gupta, Dylan Flanders
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
